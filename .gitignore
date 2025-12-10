@@ -1,0 +1,24 @@
+# Virtual environments
+.venv/
+
+# Local settings
+.env
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Generated data layers
+/data/raw/
+/data/bronze/
+/data/silver/
+/data/gold/
+/data/output/
+
+# Generated Excel exports
+*.xlsx
+
+# OS junk
+.DS_Store
+Thumbs.db

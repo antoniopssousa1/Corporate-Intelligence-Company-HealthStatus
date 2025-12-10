@@ -4,16 +4,17 @@ Configuration file for the financial data pipeline
 import os
 
 # Base paths
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 DATA_PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(PROJECT_ROOT, 'data')
 
-# Medallion architecture paths
-BRONZE_DIR = os.path.join(DATA_PIPELINE_DIR, 'bronze')
-SILVER_DIR = os.path.join(DATA_PIPELINE_DIR, 'silver')
-GOLD_DIR = os.path.join(DATA_PIPELINE_DIR, 'gold')
+# Medallion architecture paths (separate from code)
+BRONZE_DIR = os.path.join(DATA_DIR, 'bronze')
+SILVER_DIR = os.path.join(DATA_DIR, 'silver')
+GOLD_DIR = os.path.join(DATA_DIR, 'gold')
 
 # Company folders
-EMPRESAS_DIR = os.path.join(BASE_DIR, 'EMPRESAS')
+EMPRESAS_DIR = os.path.join(DATA_DIR, 'output', 'EMPRESAS')
 
 # PostgreSQL Database Configuration
 DB_CONFIG = {
