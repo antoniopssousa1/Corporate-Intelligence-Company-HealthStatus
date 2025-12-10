@@ -1,0 +1,16 @@
+Ticker,Name,Sector,Industry,Beta,Forward_PE,Market_Cap,Target_Price
+AAPL,Apple Inc.,Technology,Consumer Electronics,1.107,33.354992,4113459052544,285.28464
+MSFT,Microsoft Corporation,Technology,Software - Infrastructure,1.07,32.911037,3657266364416,625.4096
+GOOGL,Alphabet Inc.,Communication Services,Internet Content & Information,1.07,35.38839,3840511311872,327.50943
+AMZN,"Amazon.com, Inc.",Consumer Cyclical,Internet Retail,1.372,37.06016,2436513923072,295.03168
+TSLA,"Tesla, Inc.",Consumer Cyclical,Auto Manufacturers,1.878,137.39815,1480554971136,393.29367
+META,"Meta Platforms, Inc.",Communication Services,Internet Content & Information,1.273,25.9668,1655885922304,839.1017
+NVDA,NVIDIA Corporation,Technology,Semiconductors,2.284,44.895634,4503464574976,250.66142
+AMD,"Advanced Micro Devices, Inc.",Technology,Semiconductors,1.927,43.454903,360806580224,283.56512
+INTC,Intel Corporation,Technology,Semiconductors,1.344,41.752575,193184989184,37.97361
+IBM,International Business Machines,Technology,Information Technology Services,0.689,29.262962,290216607744,292.55557
+ORCL,Oracle Corporation,Technology,Software - Infrastructure,1.659,30.939945,631536091136,330.4916
+CSCO,"Cisco Systems, Inc.",Technology,Communication Equipment,0.864,20.38718,314151534592,84.81476
+SAP,SAP  SE,Technology,Software - Application,0.815,36.167408,284849504256,339.75
+ADBE,Adobe Inc.,Technology,Software - Application,1.54,16.755232,146060541952,444.23428
+CRM,"Salesforce, Inc.",Technology,Software - Application,1.253,23.451931,248491032576,326.8298

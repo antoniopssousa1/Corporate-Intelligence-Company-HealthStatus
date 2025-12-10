@@ -1,0 +1,502 @@
+% Relatório Técnico - Sistema de Análise Financeira de Empresas Tecnológicas
+% Inteligência Empresarial - Mestrado em Engenharia e Gestão Industrial
+% Universidade de Coimbra - FEUC
+
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[portuguese]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, er}
+
+\geometry{margin=2.5cm}
+
+\title{
+    \textbf{Sistema de Análise Financeira de Empresas Tecnológicas} \\
+    \large Pipeline ETL com Arquitetura Medallion e Algoritmo de Avaliação de Saúde Financeira
+}
+\author{
+    Inteligência Empresarial \\
+    Mestrado em Engenharia e Gestão Industrial \\
+    FEUC - Universidade de Coimbra
+}
+\date{Dezembro 2025}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Este relatório documenta o desenvolvimento de um sistema automatizado de extração, transformação e análise de dados financeiros de empresas tecnológicas cotadas em bolsa. O sistema implementa uma arquitetura Medallion (Bronze-Silver-Gold) utilizando PostgreSQL como sistema de gestão de base de dados, com um algoritmo proprietário de avaliação de saúde financeira. O objetivo final é disponibilizar dados preparados para Self-Service Business Intelligence através de ficheiros Excel e dashboards interativos.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+%==============================================================================
+\section{Introdução}
+%==============================================================================
+
+\subsection{Contexto e Motivação}
+
+A análise financeira de empresas tecnológicas apresenta desafios únicos devido à natureza dinâmica do setor e à quantidade de dados disponíveis publicamente. Este projeto surge da necessidade de criar um sistema automatizado que permita:
+
+\begin{itemize}
+    \item Extração automática de dados financeiros de múltiplas fontes
+    \item Transformação e limpeza de dados para análise
+    \item Cálculo de indicadores de saúde financeira
+    \item Disponibilização de dados para ferramentas de Business Intelligence
+\end{itemize}
+
+\subsection{Objetivos}
+
+\begin{enumerate}
+    \item Desenvolver um pipeline ETL (Extract-Transform-Load) automatizado
+    \item Implementar uma arquitetura de dados Medallion
+    \item Criar um algoritmo de avaliação de saúde financeira
+    \item Exportar dados prontos para visualização em Power BI/Excel
+\end{enumerate}
+
+\subsection{Empresas Analisadas}
+
+O sistema analisa as 10 principais empresas tecnológicas por capitalização de mercado:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}clll@{}}
+\toprule
+\textbf{\#} & \textbf{Ticker} & \textbf{Empresa} & \textbf{Setor} \\
+\midrule
+1 & AAPL & Apple Inc. & Hardware/Software \\
+2 & MSFT & Microsoft Corporation & Software/Cloud \\
+3 & GOOGL & Alphabet Inc. & Internet/Advertising \\
+4 & AMZN & Amazon.com Inc. & E-commerce/Cloud \\
+5 & NVDA & NVIDIA Corporation & Semiconductors \\
+6 & META & Meta Platforms Inc. & Social Media \\
+7 & TSLA & Tesla Inc. & Electric Vehicles \\
+8 & AVGO & Broadcom Inc. & Semiconductors \\
+9 & ASML & ASML Holding N.V. & Semiconductor Equipment \\
+10 & NFLX & Netflix Inc. & Streaming \\
+\bottomrule
+\end{tabular}
+\caption{Empresas tecnológicas analisadas}
+\end{table}
+
+%==============================================================================
+\section{Arquitetura do Sistema}
+%==============================================================================
+
+\subsection{Arquitetura Medallion}
+
+O sistema implementa a arquitetura Medallion, um padrão de design de dados que organiza a informação em três camadas progressivas de qualidade:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=2cm]
+    % Bronze layer
+    \node[draw, fill=orange!30, minimum width=10cm, minimum height=1.5cm, rounded corners] (bronze) {
+        \textbf{BRONZE} - Dados em bruto (raw data)
+    };
+    
+    % Silver layer
+    \node[draw, fill=gray!30, minimum width=8cm, minimum height=1.5cm, rounded corners, above=0.5cm of bronze] (silver) {
+        \textbf{SILVER} - Dados limpos e normalizados
+    };
+    
+    % Gold layer
+    \node[draw, fill=yellow!30, minimum width=6cm, minimum height=1.5cm, rounded corners, above=0.5cm of silver] (gold) {
+        \textbf{GOLD} - KPIs e métricas de negócio
+    };
+    
+    % Arrows
+    \draw[->, thick] (bronze) -- (silver);
+    \draw[->, thick] (silver) -- (gold);
+\end{tikzpicture}
+\caption{Arquitetura Medallion implementada}
+\end{figure}
+
+\subsubsection{Camada Bronze}
+Armazena os dados tal como são extraídos da fonte (Yahoo Finance), sem qualquer transformação. Serve como backup histórico e permite reprocessamento.
+
+\subsubsection{Camada Silver}
+Contém dados limpos, tipados e normalizados. As tabelas seguem um modelo relacional com chaves estrangeiras e índices otimizados.
+
+\subsubsection{Camada Gold}
+Disponibiliza dados agregados, KPIs calculados e métricas prontas para consumo por ferramentas de BI.
+
+\subsection{Stack Tecnológica}
+
+\begin{itemize}
+    \item \textbf{Linguagem}: Python 3.12
+    \item \textbf{Base de Dados}: PostgreSQL 16
+    \item \textbf{Extração de Dados}: yfinance (Yahoo Finance API)
+    \item \textbf{Manipulação de Dados}: pandas, numpy
+    \item \textbf{Conectividade BD}: psycopg2
+    \item \textbf{Exportação}: openpyxl (Excel)
+\end{itemize}
+
+%==============================================================================
+\section{Modelo de Dados}
+%==============================================================================
+
+\subsection{Diagrama Entidade-Relacionamento}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    entity/.style={rectangle, draw, fill=blue!20, minimum width=3cm, minimum height=1cm},
+    attribute/.style={ellipse, draw, fill=white, minimum width=1.5cm, font=\small},
+    relationship/.style={diamond, draw, fill=green!20, minimum width=1.5cm, aspect=2},
+    every node/.style={font=\footnotesize}
+]
+
+% Silver Companies (central entity)
+\node[entity] (companies) at (0,0) {\textbf{silver\_companies}};
+
+% Bronze tables
+\node[entity, fill=orange!20] (bronze_income) at (-6,3) {bronze\_income\_statement};
+\node[entity, fill=orange!20] (bronze_balance) at (-6,0) {bronze\_balance\_sheet};
+\node[entity, fill=orange!20] (bronze_cash) at (-6,-3) {bronze\_cash\_flow};
+
+% Silver tables
+\node[entity, fill=gray!20] (silver_income) at (0,3) {silver\_income\_statement};
+\node[entity, fill=gray!20] (silver_balance) at (0,-3) {silver\_balance\_sheet};
+\node[entity, fill=gray!20] (silver_cash) at (3,0) {silver\_cash\_flow};
+
+% Gold tables
+\node[entity, fill=yellow!20] (gold_health) at (6,2) {gold\_financial\_health};
+\node[entity, fill=yellow!20] (gold_kpi) at (6,-2) {gold\_kpi\_dashboard};
+\node[entity, fill=yellow!20] (gold_trends) at (6,0) {gold\_trends};
+
+% Relationships
+\draw[->, thick] (bronze_income) -- (silver_income);
+\draw[->, thick] (bronze_balance) -- (silver_balance);
+\draw[->, thick] (bronze_cash) -- (silver_cash);
+
+\draw[-] (companies) -- (silver_income);
+\draw[-] (companies) -- (silver_balance);
+\draw[-] (companies) -- (silver_cash);
+
+\draw[->, thick] (silver_income) -- (gold_health);
+\draw[->, thick] (silver_balance) -- (gold_health);
+\draw[->, thick] (silver_cash) -- (gold_health);
+
+\draw[->, thick] (gold_health) -- (gold_kpi);
+\draw[->, thick] (companies) -- (gold_trends);
+
+\end{tikzpicture}
+\caption{Diagrama ER simplificado do sistema}
+\end{figure}
+
+\subsection{Descrição das Tabelas}
+
+\subsubsection{Camada Bronze}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Tabela} & \textbf{Descrição} & \textbf{Campos principais} \\
+\midrule
+bronze\_income\_statement & Demonstração de resultados (raw) & ticker, fiscal\_year, metric\_name, metric\_value \\
+bronze\_balance\_sheet & Balanço patrimonial (raw) & ticker, fiscal\_year, metric\_name, metric\_value \\
+bronze\_cash\_flow & Fluxo de caixa (raw) & ticker, fiscal\_year, metric\_name, metric\_value \\
+\bottomrule
+\end{tabular}
+\caption{Tabelas da camada Bronze}
+\end{table}
+
+\subsubsection{Camada Silver}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Tabela} & \textbf{Descrição} & \textbf{Campos principais} \\
+\midrule
+silver\_companies & Dimensão de empresas & ticker (PK), company\_name, sector \\
+silver\_income\_statement & Demonstração normalizada & revenue, net\_income, ebitda, eps \\
+silver\_balance\_sheet & Balanço normalizado & total\_assets, total\_equity, current\_ratio \\
+silver\_cash\_flow & Fluxo normalizado & operating\_cf, investing\_cf, free\_cf \\
+\bottomrule
+\end{tabular}
+\caption{Tabelas da camada Silver}
+\end{table}
+
+\subsubsection{Camada Gold}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Tabela} & \textbf{Descrição} & \textbf{Campos principais} \\
+\midrule
+gold\_financial\_health & Análise de saúde financeira & ratios, health\_score, health\_status \\
+gold\_kpi\_dashboard & KPIs para dashboard & revenue, growth\%, margins, rankings \\
+gold\_trends & Tendências 5 anos & cagr\_5y, trend\_direction \\
+\bottomrule
+\end{tabular}
+\caption{Tabelas da camada Gold}
+\end{table}
+
+\subsection{Diagrama ER Detalhado}
+
+\begin{verbatim}
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        BRONZE LAYER                                      │
+├─────────────────────────────────────────────────────────────────────────┤
+│  bronze_income_statement          bronze_balance_sheet                   │
+│  ├── id (PK)                      ├── id (PK)                           │
+│  ├── ticker                       ├── ticker                            │
+│  ├── company_name                 ├── company_name                      │
+│  ├── fiscal_year                  ├── fiscal_year                       │
+│  ├── metric_name                  ├── metric_name                       │
+│  ├── metric_value                 ├── metric_value                      │
+│  ├── raw_value                    ├── raw_value                         │
+│  └── extracted_at                 └── extracted_at                      │
+│                                                                          │
+│  bronze_cash_flow                                                        │
+│  ├── id (PK)                                                            │
+│  ├── ticker                                                             │
+│  ├── company_name                                                       │
+│  ├── fiscal_year                                                        │
+│  ├── metric_name                                                        │
+│  ├── metric_value                                                       │
+│  ├── raw_value                                                          │
+│  └── extracted_at                                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        SILVER LAYER                                      │
+├─────────────────────────────────────────────────────────────────────────┤
+│  silver_companies (Dimension)                                            │
+│  ├── ticker (PK)                                                        │
+│  ├── company_name                                                       │
+│  ├── sector                                                             │
+│  └── last_updated                                                       │
+│           │                                                              │
+│           ├──────────────────────────────────────┐                      │
+│           │                    │                 │                      │
+│           ▼                    ▼                 ▼                      │
+│  silver_income_statement  silver_balance_sheet  silver_cash_flow        │
+│  ├── id (PK)              ├── id (PK)           ├── id (PK)             │
+│  ├── ticker (FK)          ├── ticker (FK)       ├── ticker (FK)         │
+│  ├── fiscal_year          ├── fiscal_year       ├── fiscal_year         │
+│  ├── revenue              ├── total_assets      ├── operating_cash_flow │
+│  ├── cost_of_revenue      ├── total_liabilities ├── investing_cash_flow │
+│  ├── gross_profit         ├── total_equity      ├── financing_cash_flow │
+│  ├── operating_income     ├── current_assets    ├── free_cash_flow      │
+│  ├── net_income           ├── current_liab      ├── capex               │
+│  ├── ebitda               ├── cash_equivalents  ├── dividends_paid      │
+│  ├── eps_basic            ├── total_debt        └── net_change_cash     │
+│  └── eps_diluted          └── retained_earnings                         │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         GOLD LAYER                                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│  gold_financial_health                    gold_kpi_dashboard             │
+│  ├── id (PK)                              ├── id (PK)                    │
+│  ├── ticker (FK)                          ├── ticker (FK)                │
+│  ├── company_name                         ├── company_name               │
+│  ├── fiscal_year                          ├── fiscal_year                │
+│  ├── current_ratio                        ├── revenue                    │
+│  ├── quick_ratio                          ├── revenue_growth             │
+│  ├── cash_ratio                           ├── net_income                 │
+│  ├── gross_margin                         ├── profit_growth              │
+│  ├── operating_margin                     ├── health_score               │
+│  ├── net_margin                           ├── health_status              │
+│  ├── roe                                  ├── revenue_rank               │
+│  ├── roa                                  ├── profit_rank                │
+│  ├── debt_to_equity                       └── health_rank                │
+│  ├── debt_to_assets                                                      │
+│  ├── health_score                         gold_trends                    │
+│  ├── health_status                        ├── id (PK)                    │
+│  └── analysis_notes                       ├── ticker (FK)                │
+│                                           ├── metric_name                │
+│                                           ├── year_1..year_5             │
+│                                           ├── cagr_5y                    │
+│                                           └── trend_direction            │
+└─────────────────────────────────────────────────────────────────────────┘
+\end{verbatim}
+
+%==============================================================================
+\section{Algoritmo de Análise de Saúde Financeira}
+%==============================================================================
+
+\subsection{Metodologia}
+
+O algoritmo de avaliação de saúde financeira analisa 5 dimensões críticas, cada uma com peso específico na pontuação final:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}llc@{}}
+\toprule
+\textbf{Categoria} & \textbf{Indicadores} & \textbf{Peso} \\
+\midrule
+Liquidez & Current Ratio, Quick Ratio, Cash Ratio & 15\% \\
+Rentabilidade & Gross Margin, Operating Margin, Net Margin, ROE, ROA & 30\% \\
+Alavancagem & Debt-to-Equity, Debt-to-Assets & 20\% \\
+Cash Flow & Operating CF Ratio, Free CF Margin & 20\% \\
+Crescimento & Revenue Growth, Profit Growth & 15\% \\
+\bottomrule
+\end{tabular}
+\caption{Pesos das categorias no cálculo do Health Score}
+\end{table}
+
+\subsection{Limiares de Avaliação}
+
+Para cada indicador, foram definidos limiares baseados em benchmarks do setor tecnológico:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Indicador} & \textbf{Excelente} & \textbf{Bom} & \textbf{Razoável} & \textbf{Fraco} \\
+\midrule
+Current Ratio & $\geq$ 2.0 & $\geq$ 1.5 & $\geq$ 1.0 & $<$ 1.0 \\
+Net Margin & $\geq$ 20\% & $\geq$ 10\% & $\geq$ 5\% & $<$ 5\% \\
+ROE & $\geq$ 20\% & $\geq$ 15\% & $\geq$ 10\% & $<$ 10\% \\
+Debt-to-Equity & $\leq$ 0.5 & $\leq$ 1.0 & $\leq$ 2.0 & $>$ 2.0 \\
+FCF Margin & $\geq$ 15\% & $\geq$ 10\% & $\geq$ 5\% & $<$ 5\% \\
+\bottomrule
+\end{tabular}
+\caption{Limiares de avaliação por indicador}
+\end{table}
+
+\subsection{Classificação Final}
+
+A pontuação final (0-100) é convertida em classificação qualitativa:
+
+\begin{itemize}
+    \item \textbf{80-100}: EXCELENTE - Fundamentos sólidos em todas as áreas
+    \item \textbf{65-79}: BOM - Empresa saudável com áreas a melhorar
+    \item \textbf{50-64}: RAZOÁVEL - Requer monitorização
+    \item \textbf{35-49}: PREOCUPANTE - Sinais de stress financeiro
+    \item \textbf{0-34}: CRÍTICO - Situação de alto risco
+\end{itemize}
+
+%==============================================================================
+\section{Resultados}
+%==============================================================================
+
+\subsection{Ranking de Saúde Financeira}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}clcll@{}}
+\toprule
+\textbf{Rank} & \textbf{Empresa} & \textbf{Score} & \textbf{Status} & \textbf{Principais Pontos} \\
+\midrule
+1 & NVIDIA & 100.0 & Excelente & Margens excecionais, crescimento >100\% \\
+2 & Meta & 100.0 & Excelente & ROE 34\%, FCF Margin 33\% \\
+3 & Alphabet & 94.4 & Excelente & Diversificação, baixa dívida \\
+4 & Microsoft & 88.1 & Excelente & Estabilidade, cloud growth \\
+5 & Netflix & 84.1 & Excelente & Turnaround em FCF \\
+6 & ASML & 83.8 & Excelente & Monopólio em EUV \\
+7 & Apple & 76.0 & Bom & Alta alavancagem buybacks \\
+8 & Amazon & 72.6 & Bom & Margens em melhoria \\
+9 & Broadcom & 71.4 & Bom & Aquisição VMware \\
+10 & Tesla & 58.6 & Razoável & Margens em queda, competição \\
+\bottomrule
+\end{tabular}
+\caption{Ranking final de saúde financeira}
+\end{table}
+
+\subsection{Análise Agregada}
+
+\begin{itemize}
+    \item \textbf{Empresas Saudáveis}: 10/10 (100\%)
+    \item \textbf{Pontuação Média}: 82.9/100
+    \item \textbf{Melhor Performance}: NVIDIA (crescimento de receita +114\%)
+    \item \textbf{Maior ROE}: NVIDIA (91.9\%)
+    \item \textbf{Menor Dívida}: NVIDIA (D/E = 0.13)
+\end{itemize}
+
+%==============================================================================
+\section{Pipeline ETL}
+%==============================================================================
+
+\subsection{Fluxo de Execução}
+
+\begin{enumerate}
+    \item \textbf{Inicialização}: Criação da base de dados e tabelas
+    \item \textbf{Bronze Extraction}: Download de dados via yfinance API
+    \item \textbf{Silver Transformation}: Limpeza, normalização e mapeamento
+    \item \textbf{Gold Aggregation}: Cálculo de KPIs e health scores
+    \item \textbf{Export}: Geração de ficheiros Excel para BI
+\end{enumerate}
+
+\subsection{Estrutura de Ficheiros}
+
+\begin{verbatim}
+data_pipeline/
+├── config.py              # Configurações e constantes
+├── database.py            # Schema e conexões PostgreSQL
+├── extract_bronze.py      # Extração via yfinance
+├── transform_silver.py    # Transformações e limpeza
+├── create_gold.py         # Cálculo de KPIs
+├── health_analyzer.py     # Algoritmo de saúde financeira
+├── export_excel.py        # Exportação para Excel
+├── run_pipeline.py        # Orquestrador principal
+├── bronze/                # Dados raw
+├── silver/                # Dados limpos
+└── gold/
+    └── excel_export/      # Ficheiros para BI
+        ├── MASTER_financial_data.xlsx
+        ├── kpi_dashboard.xlsx
+        ├── financial_health.xlsx
+        └── ...
+\end{verbatim}
+
+%==============================================================================
+\section{Conclusões}
+%==============================================================================
+
+\subsection{Objetivos Alcançados}
+
+\begin{enumerate}
+    \item Pipeline ETL automatizado e funcional
+    \item Arquitetura Medallion implementada em PostgreSQL
+    \item Algoritmo de avaliação de saúde financeira operacional
+    \item Dados exportados e prontos para Power BI
+\end{enumerate}
+
+\subsection{Limitações}
+
+\begin{itemize}
+    \item Dados limitados a 5 anos históricos (limitação da API)
+    \item Análise focada apenas em empresas tecnológicas
+    \item Limiares calibrados para setor tech (podem não aplicar a outros setores)
+\end{itemize}
+
+\subsection{Trabalho Futuro}
+
+\begin{itemize}
+    \item Implementar atualização automática (scheduling)
+    \item Adicionar mais setores e empresas
+    \item Integrar com APIs de preços em tempo real
+    \item Desenvolver dashboards automatizados em Power BI
+\end{itemize}
+
+%==============================================================================
+\section*{Referências}
+%==============================================================================
+
+\begin{itemize}
+    \item Yahoo Finance API Documentation
+    \item Databricks Medallion Architecture Guide
+    \item CFA Institute - Financial Ratio Analysis
+    \item PostgreSQL 16 Documentation
+\end{itemize}
+
+\end{document}

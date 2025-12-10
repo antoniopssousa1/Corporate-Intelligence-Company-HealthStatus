@@ -1,0 +1,16 @@
+ticker,company_name,sector_id,industry,market_cap,beta,forward_pe
+AAPL,Apple Inc.,1,Consumer Electronics,4251770159104,1.1090,34.4765
+MSFT,Microsoft Corporation,1,Software - Infrastructure,3641619775488,1.0650,32.7702
+GOOGL,Alphabet Inc.,2,Internet Content & Information,3827776880640,1.0820,35.2711
+AMZN,"Amazon.com, Inc.",3,Internet Retail,2515300777984,1.3680,38.2585
+TSLA,"Tesla, Inc.",3,Auto Manufacturers,1429770993664,1.8720,132.6853
+META,"Meta Platforms, Inc.",2,Internet Content & Information,1629732601856,1.2720,25.5567
+NVDA,NVIDIA Corporation,1,Semiconductors,4412086943744,2.2690,44.0607
+AMD,"Advanced Micro Devices, Inc.",1,Semiconductors,350810406912,1.9130,42.2510
+INTC,Intel Corporation,1,Semiconductors,206898741248,1.3460,44.7165
+IBM,International Business Machines,1,Information Technology Services,283084587008,0.6880,28.5438
+ORCL,Oracle Corporation,1,Software - Infrastructure,572367896576,1.6360,28.0412
+CSCO,"Cisco Systems, Inc.",1,Communication Equipment,303740387328,0.8690,19.7115
+SAP,SAP  SE,1,Software - Application,282690945024,0.8130,35.8933
+ADBE,Adobe Inc.,1,Software - Application,137508667392,1.5360,15.7742
+CRM,"Salesforce, Inc.",1,Software - Application,225501282304,1.2430,21.1932

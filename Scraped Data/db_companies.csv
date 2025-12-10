@@ -1,0 +1,16 @@
+Ticker,Name,Sector,Industry,Market_Cap
+AAPL,Apple Inc.,Technology,Consumer Electronics,4246132228096
+MSFT,Microsoft Corporation,Technology,Software - Infrastructure,3641731186688
+GOOGL,Alphabet Inc.,Communication Services,Internet Content & Information,3829429174272
+AMZN,"Amazon.com, Inc.",Consumer Cyclical,Internet Retail,2510704082944
+TSLA,"Tesla, Inc.",Consumer Cyclical,Auto Manufacturers,1423384117248
+META,"Meta Platforms, Inc.",Communication Services,Internet Content & Information,1628916154368
+NVDA,NVIDIA Corporation,Technology,Semiconductors,4403825213440
+AMD,"Advanced Micro Devices, Inc.",Technology,Semiconductors,350028955648
+INTC,Intel Corporation,Technology,Semiconductors,205235929088
+IBM,International Business Machines,Technology,Information Technology Services,283150024704
+ORCL,Oracle Corporation,Technology,Software - Infrastructure,572410626048
+CSCO,"Cisco Systems, Inc.",Technology,Communication Equipment,303127986176
+SAP,SAP  SE,Technology,Software - Application,282515931136
+ADBE,Adobe Inc.,Technology,Software - Application,137462857728
+CRM,"Salesforce, Inc.",Technology,Software - Application,224756744192

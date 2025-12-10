@@ -1,0 +1,55 @@
+-- 1. SECTORS
+CREATE TABLE dim_sectors (
+    sector_id INTEGER PRIMARY KEY,
+    sector_name VARCHAR(100)
+);
+
+-- 2. COMPANIES
+CREATE TABLE dim_companies (
+    ticker VARCHAR(10) PRIMARY KEY,
+    company_name VARCHAR(255),
+    sector_id INTEGER NOT NULL, -- Merged column
+    industry VARCHAR(255),
+    market_cap BIGINT,
+    beta DECIMAL(10, 4),        -- Changed FLOAT to DECIMAL for precision
+    forward_pe DECIMAL(10, 2),
+    -- Constraint linking to Sectors
+    CONSTRAINT fk_sector FOREIGN KEY (sector_id) REFERENCES dim_sectors(sector_id)
+);
+
+-- 3. DAILY PRICES
+CREATE TABLE fact_daily_prices (
+    price_id BIGSERIAL PRIMARY KEY,
+    ticker VARCHAR(10) NOT NULL, -- Merged column
+    trade_date DATE,
+    open_price DECIMAL(12, 4),   -- DECIMAL is better for money
+    close_price DECIMAL(12, 4),
+    volume BIGINT,
+    -- Constraint linking to Companies
+    CONSTRAINT fk_prices_company FOREIGN KEY (ticker) REFERENCES dim_companies(ticker)
+);
+
+-- 4. FINANCIALS
+CREATE TABLE fact_financials (
+    financial_id BIGSERIAL PRIMARY KEY,
+    ticker VARCHAR(10) NOT NULL, -- Merged column
+    report_date DATE,
+    revenue BIGINT,
+    net_income BIGINT,
+    rnd_expenses BIGINT,         -- Renamed 'md_expenses' to 'rnd' (Research & Dev)
+    operating_cash_flow BIGINT,
+    -- Constraint linking to Companies
+    CONSTRAINT fk_fin_company FOREIGN KEY (ticker) REFERENCES dim_companies(ticker)
+);
+
+-- 5. RECOMMENDATIONS
+CREATE TABLE fact_recommendations (
+    rec_id BIGSERIAL PRIMARY KEY,
+    ticker VARCHAR(10) NOT NULL, -- Merged column
+    rec_date DATE,
+    buy_count BIGINT,
+    sell_count BIGINT,
+    consensus_score DECIMAL(5, 2),
+    -- Constraint linking to Companies
+    CONSTRAINT fk_rec_company FOREIGN KEY (ticker) REFERENCES dim_companies(ticker)
+);
