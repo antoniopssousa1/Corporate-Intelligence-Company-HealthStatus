@@ -7,3 +7,8 @@ seaborn
 requests
 uuid 
 datetime
+plotly==6.5.0
+psycopg2-binary==2.9.11
+streamlit==1.52.1
+
+

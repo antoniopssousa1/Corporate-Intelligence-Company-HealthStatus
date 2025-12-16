@@ -23,13 +23,13 @@ def calculate_health_score(ratios):
     Calculate a composite financial health score (0-100)
     Based on weighted scoring of key financial metrics
     """
-    score = 0
-    max_score = 0
+    score = 0 # initial score
+    max_score = 0 # maximum possible score
     
     # Liquidity (20 points max)
-    if ratios.get('current_ratio') is not None:
-        max_score += 10
-        cr = ratios['current_ratio']
+    if ratios.get('current_ratio') is not None: #verificar se o ratio existe 
+        max_score += 10 # adicionar 10 ao max score
+        cr = ratios['current_ratio'] #pegar o valor do current ratio
         if cr >= 2.0:
             score += 10
         elif cr >= 1.5:
