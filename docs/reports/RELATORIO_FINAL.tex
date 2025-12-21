@@ -1,0 +1,1118 @@
+% ============================================================================
+% RELATÓRIO FINAL - Sistema de Análise de Saúde Financeira
+% Inteligência Empresarial - Mestrado em Economia
+% Universidade de Coimbra - Faculdade de Economia
+% Dezembro 2025
+% ============================================================================
+
+\documentclass[12pt, a4paper]{article}
+
+%--- Configuração de Pacotes ---%
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{parskip}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{cite} 
+
+%--- Configuração TikZ ---%
+\usetikzlibrary{shapes.geometric, arrows, positioning, shadows, calc, fit}
+
+%--- Configuração de Cores ---%
+\definecolor{darkblue}{RGB}{30,58,95}
+\definecolor{lightblue}{RGB}{103,137,177}
+\definecolor{bronze}{RGB}{205,127,50}
+\definecolor{silver}{RGB}{169,169,169}
+\definecolor{gold}{RGB}{218,165,32}
+\definecolor{excellent}{RGB}{46,139,87}
+\definecolor{good}{RGB}{60,179,113}
+\definecolor{fair}{RGB}{218,165,32}
+\definecolor{concerning}{RGB}{255,140,0}
+\definecolor{poor}{RGB}{220,20,60}
+
+%--- Configuração da Página ---%
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=3cm,
+    right=2.5cm
+}
+\onehalfspacing
+
+%--- Cabeçalho e Rodapé ---%
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\nouppercase{\leftmark}}
+\fancyhead[R]{\small Inteligência Empresarial}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+%--- Configuração de Listas ---%
+\setlist[itemize]{noitemsep, topsep=3pt}
+\setlist[enumerate]{noitemsep, topsep=3pt}
+
+%==============================================================================
+% INÍCIO DO DOCUMENTO
+%==============================================================================
+
+\begin{document}
+
+%--- Capa ---%
+\begin{titlepage}
+    \centering
+    \vspace*{0.5cm} 
+    
+    \includegraphics[width=0.65\textwidth]{images/FEUC.png} 
+    \vspace{1.2cm}
+    
+    {\Large \textsc{Universidade de Coimbra}}\\[0.2cm]
+    {\large \textsc{Faculdade de Economia}}\\[0.2cm]
+    {\normalsize \textsc{Mestrado em Economia}}\\[2cm]
+    
+    \rule{\linewidth}{0.5mm} \\[0.5cm]
+    {\LARGE \textbf{Sistema de Análise de Saúde Financeira\\para Empresas Tecnológicas}}\\[0.4cm]
+    {\Large Implementação de Self-Service Business Intelligence\\com Arquitetura Medallion e Algoritmo de Scoring}\\[0.5cm]
+    \rule{\linewidth}{0.5mm} \\[1.8cm]
+    
+    \begin{minipage}{0.45\textwidth}
+        \begin{flushleft}
+            \textbf{Autor:}\\[0.1cm]
+            António P. Sousa\textsuperscript{1}
+        \end{flushleft}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \begin{flushright}
+            \textbf{Unidade Curricular:}\\[0.1cm]
+            Inteligência Empresarial
+        \end{flushright}
+    \end{minipage}
+    
+    \vfill
+    
+    {\large Coimbra, Dezembro de 2025}
+
+    \vspace{0.8cm}
+
+    \begin{minipage}[b]{\textwidth}
+        \raggedright
+        \rule{4cm}{0.4pt} \\
+        \vspace{0.15cm}
+        \footnotesize
+        \textsuperscript{1}Licenciado em Data Science and Engineering, Mestrando em Economia, Universidade de Coimbra.\\
+        Contacto: uc2020247841@student.uc.pt
+    \end{minipage}
+    
+\end{titlepage}
+
+%==============================================================================
+% RESUMO
+%==============================================================================
+\newpage
+\thispagestyle{plain}
+\begin{center}
+    {\Large \textbf{Resumo}}
+\end{center}
+\vspace{0.5cm}
+\subsection{Contextualização}
+Um número significativo de empresas em fase de maturação opta por tornar-se pública (o chamado ``going public''). O termo ``going public'' refere-se à Oferta Pública Inicial (IPO) de uma empresa privada quando esta transita para uma entidade cotada e detida publicamente, o que pode, entre outros aspetos, proporcionar um maior acesso a capital, maior liquidez e benefícios reputacionais \cite{sec_going_public}. As empresas entram em bolsa por diversos motivos, mas cada organização deve ponderar os potenciais benefícios e custos, que podem incluir:
+
+% --- TABELA DE BENEFÍCIOS E CUSTOS ---
+\begin{table}[h!]
+\centering
+\caption{Potenciais benefícios e custos da entrada em bolsa. Fonte: \cite{sec_going_public}}
+\label{tab:benefits_costs}
+\small
+\begin{tabular}{p{7.2cm} p{7.2cm}} 
+\toprule
+\textbf{Benefícios} & \textbf{Custos} \\
+\midrule
+$\bullet$ Mais oportunidades de angariação de capital & $\bullet$ Requisitos de divulgação, maior risco de responsabilidade e riscos competitivos \\
+\addlinespace 
+$\bullet$ Liquidez para os acionistas existentes & $\bullet$ Custos de oferta e de conformidade (\textit{compliance}) \\
+\addlinespace
+$\bullet$ Prestígio reputacional, atenção mediática e reconhecimento de mercado & $\bullet$ Maior escrutínio por parte do mercado e dos media \\
+\addlinespace
+$\bullet$ Incentivos aos colaboradores, tais como remuneração baseada em ações & $\bullet$ Perda de controlo por parte dos fundadores \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Com isto, entre muitos outros regulamentos, a empresa passa a ter o dever de divulgar informações aos seus acionistas, incluindo o Balanço, a Demonstração de Resultados e a Demonstração de Fluxos de Caixa. Estes documentos podem ser encontrados no site da SEC (Security Exchange Commission) \cite{SEC}, agência federal dos EUA que regula os mercados financeiros e protege os investidores, sendo a autoridade máxima sobre valores mobiliários no país, similar à CMVM em Portugal, ou podem ser encontrados na página de cada empresa em \textit{"Investors Relations"}.
+
+O presente relatório documenta a conceção, desenvolvimento e implementação de um sistema automatizado de \textit{Business Intelligence} orientado para a análise financeira de empresas do setor tecnológico cotadas na bolsa de valores. 
+Face à crescente complexidade dos mercados financeiros e ao volume extraordinário de dados públicos disponíveis, torna-se imperativo dispor de ferramentas capazes de transformar informação bruta em conhecimento acionável para suporte à decisão estratégica. Como ``os dados são o petróleo'' desta indústria, analisar dados é imperativo para a tomada de decisão; ainda que neste projeto tenham sido analisados meramente dados quantitativos, as tecnologias atuais permitem analisar qualquer tipo de dados, capacidade que deve ser alavancada ao máximo para vantagem dos investidores.
+
+A solução desenvolvida adota a arquitetura de dados \textit{Medallion}, estruturada em três camadas progressivas designadas \textit{Bronze, Silver e Gold}, suportada por uma base de dados PostgreSQL. Para orquestrar todo o processo de ETL (\textit{Extract, Transform, Load}) foi utilizada uma pipeline desenvolvida em Python. Esta abordagem metodológica garante rastreabilidade completa, qualidade progressiva dos dados e facilidade de auditoria do pipeline de transformação. A extração de dados é realizada através da API \textit{Yahoo Finance}, assegurando acesso a informação financeira atualizada das dez maiores empresas tecnológicas por capitalização de mercado.
+
+O contributo diferenciador deste projeto reside na arquitetura de dados, estruturação de fluxo de dados e no desenvolvimento de um algoritmo proprietário para o cálculo de um índice composto de saúde financeira, denominado \textit{Health Score}. Este indicador agrega múltiplas dimensões de análise financeira --- rentabilidade, liquidez, alavancagem e geração de fluxo de caixa --- numa métrica unificada de 0 a 100 pontos, ponderada de acordo com a relevância de cada dimensão no contexto do setor tecnológico. Esta quantificação permite comparações objetivas entre empresas e a identificação expedita de sinais de alerta ou de excelência financeira.
+
+O sistema culmina na disponibilização de estruturas de dados otimizadas para consumo em ferramentas de \textit{Self-Service BI}, nomeadamente dashboards interativos desenvolvidos em Python com Streamlit \cite{Streamlit}, e exportações estruturadas para Microsoft Excel. Esta abordagem democratiza o acesso à análise financeira, permitindo que utilizadores sem formação técnica especializada possam extrair insights relevantes de forma autónoma.
+
+\vspace{0.6cm}
+\noindent \textbf{Palavras-chave:} Business Intelligence, ETL, Arquitetura Medallion, Análise Financeira, Indicadores de Performance (KPI), Python, PostgreSQL, Self-Service BI.
+
+%==============================================================================
+% ABSTRACT
+%==============================================================================
+\newpage
+\thispagestyle{plain}
+\begin{center}
+    {\Large \textbf{Abstract}}
+\end{center}
+\vspace{0.5cm}
+
+\subsection{Contextualization}
+A significant number of later-stage companies choose to ``go public''. The term ``going public'' refers to a private company's Initial Public Offering (IPO) when it transitions to a publicly traded and owned entity, which may, among other things, provide a greater pool of capital, enhanced liquidity, and reputational benefits \cite{sec_going_public}. Companies go public for many reasons, but each organization must weigh the potential benefits and costs, which may include:
+
+% --- BENEFITS TABLE ---
+\begin{table}[h!]
+\centering
+\caption{Potential benefits and costs of going public. Source: \cite{sec_going_public}}
+\label{tab:benefits_costs_en}
+\small
+\begin{tabular}{p{7.2cm} p{7.2cm}} 
+\toprule
+\textbf{Benefits} & \textbf{Costs} \\
+\midrule
+$\bullet$ More opportunities for capital raising & $\bullet$ Disclosure requirements, increased liability risk, and competitive risks \\
+\addlinespace 
+$\bullet$ Liquidity for existing shareholders & $\bullet$ Offering and compliance costs \\
+\addlinespace
+$\bullet$ Reputational prestige, media attention, and market awareness & $\bullet$ Increased market and media scrutiny \\
+\addlinespace
+$\bullet$ Workforce incentives, such as stock-based compensation & $\bullet$ Loss of founder control \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+With this, among many other regulations, the company becomes obligated to disclose information to its shareholders, including the Balance Sheet, Income Statement, and Cash Flow Statement. These documents can be found on the SEC (Securities and Exchange Commission) website \cite{SEC}, the US federal agency that regulates financial markets and protects investors, serving as the supreme authority on securities in the country (similar to the CMVM in Portugal), or they can be found on each company's ``Investors Relations'' page.
+
+This report documents the design, development, and implementation of an automated \textit{Business Intelligence} system oriented towards the financial analysis of publicly traded technology companies. 
+Given the increasing complexity of financial markets and the extraordinary volume of available public data, it becomes imperative to have tools capable of transforming raw information into actionable knowledge to support strategic decision-making. Since ``data is the oil'' of this industry, analyzing data is imperative for decision-making. Although this project analyzed merely quantitative data, current technologies allow for the analysis of any type of data, a capability that should be leveraged to the fullest for the benefit of investors.
+
+The developed solution adopts the \textit{Medallion} data architecture, structured in three progressive layers designated \textit{Bronze, Silver, and Gold}, supported by a PostgreSQL database. To orchestrate the entire ETL (\textit{Extract, Transform, Load}) process, a pipeline developed in Python was used. This methodological approach ensures complete traceability, progressive data quality, and ease of auditability of the transformation pipeline. Data extraction is performed through the \textit{Yahoo Finance} API, ensuring access to up-to-date financial information from the ten largest technology companies by market capitalization.
+
+The distinctive contribution of this project lies in the data architecture, data flow structuring, and the development of a proprietary algorithm for calculating a composite financial health index, called the \textit{Health Score}. This indicator aggregates multiple dimensions of financial analysis --- profitability, liquidity, leverage, and cash flow generation --- into a unified metric ranging from 0 to 100 points, weighted according to the relevance of each dimension in the context of the technology sector. This quantification enables objective comparisons between companies and the rapid identification of warning signs or financial excellence.
+
+The system culminates in the provision of data structures optimized for consumption in \textit{Self-Service BI} tools, namely interactive dashboards developed in Python with Streamlit\cite{Streamlit}, and structured exports for Microsoft Excel. This approach democratizes access to financial analysis, enabling users without specialized technical training to extract relevant insights autonomously.
+
+\vspace{0.6cm}
+\noindent \textbf{Keywords:} Business Intelligence, ETL, Medallion Architecture, Financial Analysis, Key Performance Indicators (KPI), Python, PostgreSQL, Self-Service BI.
+
+%--- Índices ---%
+\newpage
+\tableofcontents
+\newpage
+\listoffigures
+\listoftables
+\newpage
+
+%==============================================================================
+\section{Introdução}
+%==============================================================================
+
+\subsection{Enquadramento e Motivação}
+
+O setor tecnológico representa atualmente um dos pilares fundamentais da economia global, sendo caracterizado por uma elevada volatilidade, ciclos acelerados de inovação e uma dinâmica competitiva intensa. As empresas que operam neste setor estão sujeitas a avaliações de mercado que podem variar significativamente em curtos períodos de tempo, tornando a análise financeira contínua uma necessidade imperativa para investidores, analistas e gestores \cite{wsj_mag7_2025}.
+
+A disponibilidade de dados financeiros públicos, embora vasta, apresenta desafios consideráveis. A informação encontra-se dispersa por múltiplas fontes, com formatos heterogéneos e nem sempre de qualidade consistente. A recolha manual e o tratamento destes dados representam processos morosos, propensos a erro humano e que limitam severamente a capacidade de resposta na tomada de decisão estratégica.
+
+Neste contexto, emerge a necessidade de sistemas automatizados que possam:
+
+\begin{itemize}
+    \item Agregar dados de múltiplas fontes de forma sistemática e reprodutível
+    \item Garantir a qualidade e consistência da informação através de processos de validação
+    \item Calcular indicadores financeiros normalizados que permitam comparações objetivas
+    \item Disponibilizar a informação em formatos acessíveis a diferentes perfis de utilizador
+\end{itemize}
+
+O uso de tecnologias avançadas, como a inteligência artificial, para inteligência de mercado e análise competitiva está a tornar-se uma norma, com mais de meio trilião de dólares já investidos em infraestrutura de IA \cite{barrons_ai_2025}. O presente projeto responde a esta problemática através do desenvolvimento de uma solução integrada de \textit{Business Intelligence}, concebida especificamente para o acompanhamento da saúde financeira de empresas tecnológicas de grande capitalização.
+\subsection{Objetivos do Projeto}
+
+O objetivo central deste trabalho consiste no desenvolvimento de um sistema ``fim-a-fim'' que suporte a análise comparativa de grandes empresas tecnológicas, desde a extração de dados brutos até à geração de visualizações analíticas. De forma específica, o projeto contempla os seguintes objetivos:
+
+\begin{enumerate}
+    \item \textbf{Automação do Processo ETL:} Implementação de pipelines robustos e escaláveis para extração de dados financeiros da API Yahoo Finance, transformação e carregamento em base de dados relacional.
+    
+    \item \textbf{Arquitetura de Dados Estruturada:} Organização da informação segundo o paradigma \textit{Medallion}, garantindo rastreabilidade, qualidade progressiva e separação clara entre dados brutos, dados limpos e dados analíticos.
+    
+    \item \textbf{Algoritmia Financeira:} Desenvolvimento de um modelo de \textit{scoring} multicritério para avaliação automática e quantificação da saúde financeira empresarial.
+    
+    \item \textbf{Interoperabilidade e Self-Service BI:} Preparação dos dados para integração com ferramentas de análise de utilizador final, nomeadamente Microsoft Excel, Power BI e dashboards web interativos.
+\end{enumerate}
+
+\subsection{Âmbito e Delimitação da Análise}
+
+O sistema desenvolvido incide sobre as dez maiores empresas tecnológicas por capitalização de mercado à data de desenvolvimento do projeto. A seleção abrange diversos sub-setores dentro do universo tecnológico, garantindo representatividade amostral e permitindo análises comparativas entre modelos de negócio distintos.
+
+\begin{table}[H]
+\centering
+\caption{Universo de empresas tecnológicas contempladas no sistema}
+\label{tab:empresas}
+\begin{tabular}{@{}clll@{}}
+\toprule
+\textbf{Posição} & \textbf{Ticker} & \textbf{Empresa} & \textbf{Segmento Principal} \\
+\midrule
+1 & AAPL & Apple Inc. & Hardware \& Consumer Electronics \\
+2 & MSFT & Microsoft Corporation & Software \& Cloud Computing \\
+3 & GOOGL & Alphabet Inc. & Internet Services \& Advertising \\
+4 & AMZN & Amazon.com Inc. & E-commerce \& Cloud Infrastructure \\
+5 & NVDA & NVIDIA Corporation & Semiconductors \& AI Hardware \\
+6 & META & Meta Platforms Inc. & Social Media \& Digital Advertising \\
+7 & TSLA & Tesla Inc. & Electric Vehicles \& Clean Energy \\
+8 & AVGO & Broadcom Inc. & Semiconductor Solutions \\
+9 & ASML & ASML Holding N.V. & Semiconductor Equipment \\
+10 & NFLX & Netflix Inc. & Digital Entertainment \& Streaming \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A diversidade de segmentos representados --- desde semicondutores e hardware até serviços de streaming e e-commerce --- permite uma visão abrangente do ecossistema tecnológico e possibilita a identificação de padrões financeiros transversais ao setor.
+
+\subsection{Estrutura do Relatório}
+
+O presente relatório encontra-se organizado em oito secções principais. Após esta introdução, a Secção 2 apresenta a arquitetura conceptual e técnica do sistema, detalhando o paradigma \textit{Medallion} e a stack tecnológica utilizada. A Secção 3 descreve o modelo de dados implementado, incluindo o diagrama entidade-relacionamento e a estrutura das tabelas. A Secção 4 expõe a metodologia de avaliação financeira desenvolvida, com particular enfoque no algoritmo de cálculo do \textit{Health Score}. A Secção 5 apresenta a análise de resultados obtidos para o universo de empresas estudado. A Secção 6 descreve as componentes de visualização e \textit{Self-Service BI} desenvolvidas, incluindo instruções de utilização. A Secção 7 apresenta os resultados obtidos e os principais \textit{insights} identificados. Por fim, a Secção 8 conclui com a síntese das contribuições, limitações, escalabilidade e propostas de trabalho futuro.
+
+%==============================================================================
+\section{Arquitetura do Sistema}
+%==============================================================================
+
+\subsection{Paradigma Medallion}
+
+A arquitetura da solução baseia-se no padrão \textit{Medallion}, uma abordagem de organização de dados largamente adotada em contextos de \textit{Data Engineering} e \textit{Data Lakehouse}. Este paradigma estrutura o fluxo de dados em três camadas lógicas com níveis de qualidade progressivos, assegurando a integridade da informação e facilitando a auditoria do processo de transformação.
+Este tipo de arquitetura é implementado em soluções de plataformas como Databricks\cite{Databricks}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1.0\textwidth]{images/Medallion Arch.png} 
+\caption{Representação esquemática da arquitetura Medallion implementada \cite{Medallion_arch}}
+\label{fig:medallion}
+\end{figure}
+
+\subsubsection{Camada Bronze: Ingestão de Dados Brutos}
+
+A camada Bronze constitui o repositório fiel e imutável dos dados extraídos diretamente da fonte --- neste caso, a API \textit{Yahoo Finance} através da biblioteca Python \texttt{yfinance}. Nesta etapa, não são aplicadas quaisquer transformações aos dados, preservando-se integralmente o formato original (estruturas JSON convertidas para CSV) para garantir a possibilidade de reprocessamento futuro em caso de alteração nas regras de negócio ou correção de erros identificados a posteriori.
+
+Os dados armazenados nesta camada incluem:
+\begin{itemize}
+    \item Demonstrações de resultados anuais (\textit{Income Statement})
+    \item Balanços patrimoniais (\textit{Balance Sheet})
+    \item Mapas de fluxo de caixa (\textit{Cash Flow Statement})
+    \item Informação de perfil da empresa (\textit{Company Profile})
+    \item Cotações históricas (\textit{Stock Prices})
+\end{itemize}
+
+\subsubsection{Camada Silver: Dados Validados e Conformados}
+
+A camada Silver representa o ponto de transformação onde os dados brutos são submetidos a processos de validação, limpeza e normalização. As principais operações realizadas nesta etapa incluem:
+
+\begin{itemize}
+    \item \textbf{Validação de Tipos:} Conversão de campos para tipos de dados apropriados (numéricos, datas, categorias)
+    \item \textbf{Tratamento de Valores Nulos:} Identificação e tratamento adequado de campos ausentes
+    \item \textbf{Normalização de Nomenclatura:} Uniformização das designações das métricas financeiras entre diferentes empresas
+    \item \textbf{Integridade Referencial:} Estabelecimento de relações entre tabelas através de chaves primárias e estrangeiras
+\end{itemize}
+
+As tabelas resultantes desta camada seguem um modelo relacional normalizado, preparado para consultas analíticas eficientes.
+
+\subsubsection{Camada Gold: Nível Analítico e de Negócio}
+
+A camada Gold representa o ponto culminante do pipeline, orientada exclusivamente para o consumo final por utilizadores de negócio e ferramentas de visualização. Esta camada contém:
+
+\begin{itemize}
+    \item Tabelas agregadas com métricas calculadas
+    \item Indicadores-chave de performance (KPIs) financeiros
+    \item O \textit{Health Score} composto e classificação de saúde financeira
+    \item Rankings comparativos entre empresas
+    \item Dados otimizados para performance em consultas analíticas (\textit{Star Schema})
+\end{itemize}
+
+\subsection{Stack Tecnológica}
+
+A implementação do sistema recorre a um conjunto de tecnologias \textit{open-source} consolidadas no mercado e amplamente utilizadas em contextos de engenharia de dados e análise financeira.
+
+\begin{table}[H]
+\centering
+\caption{Componentes tecnológicos do sistema}
+\label{tab:tecnologias}
+\begin{tabular}{@{}llp{7cm}@{}}
+\toprule
+\textbf{Categoria} & \textbf{Tecnologia} & \textbf{Justificação} \\
+\midrule
+Linguagem & Python 3.12 & Ecossistema maduro para análise de dados, bibliotecas financeiras especializadas \\
+Base de Dados & PostgreSQL 18 & Robustez, conformidade ACID, suporte a tipos avançados e funções analíticas \\
+Extração & yfinance & Interface Python oficial para Yahoo Finance API \\
+Processamento & Pandas / NumPy & Manipulação vetorial eficiente de dados tabulares \\
+Conectividade & SQLAlchemy / Psycopg2 & Abstração ORM e driver nativo PostgreSQL \\
+Visualização & Streamlit / Plotly & Desenvolvimento rápido de dashboards web interativos \\
+Exportação & OpenPyXL & Geração de ficheiros Excel formatados \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Estrutura do Projeto}
+
+O código-fonte do projeto encontra-se organizado de forma modular, seguindo boas práticas de engenharia de software:
+
+\begin{table}[H]
+\centering
+\caption{Organização do repositório de código}
+\label{tab:estrutura}
+\begin{tabular}{@{}lp{8.5cm}@{}}
+\toprule
+\textbf{Diretoria/Ficheiro} & \textbf{Descrição} \\
+\midrule
+\texttt{src/data\_pipeline/} & Código principal do pipeline ETL \\
+\quad\texttt{config.py} & Configurações (credenciais DB, lista de empresas, paths) \\
+\quad\texttt{database.py} & Definição do schema e funções de acesso à BD \\
+\quad\texttt{extract\_bronze.py} & Extração de dados via yfinance \\
+\quad\texttt{transform\_silver.py} & Normalização e validação de dados \\
+\quad\texttt{create\_gold.py} & Cálculo de KPIs e Health Score \\
+\quad\texttt{health\_analyzer.py} & Algoritmo de avaliação de saúde financeira \\
+\quad\texttt{export\_excel.py} & Exportação para ficheiros Excel \\
+\quad\texttt{dashboard.py} & Dashboard interativo Streamlit \\
+\quad\texttt{run\_pipeline.py} & Orquestração do pipeline completo \\
+\midrule
+\texttt{data/} & Diretoria de dados \\
+\quad\texttt{bronze/} & Dados brutos extraídos da API \\
+\quad\texttt{silver/} & Dados validados e normalizados \\
+\quad\texttt{gold/} & Dados analíticos e KPIs calculados \\
+\quad\quad\texttt{excel\_export/} & Ficheiros Excel consolidados (7 ficheiros) \\
+\quad\texttt{output/EMPRESAS/} & Exports Excel individuais por empresa (10 pastas) \\
+\midrule
+\texttt{docs/} & Documentação do projeto \\
+\quad\texttt{diagrams/} & Diagramas ER e esquemas arquiteturais \\
+\quad\texttt{reports/} & Relatórios LaTeX e apresentações \\
+\midrule
+\texttt{requirements.txt} & Dependências Python do projeto \\
+\texttt{README.md} & Documentação inicial e instruções de execução \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{Modelo de Dados}
+%==============================================================================
+
+O modelo de dados implementado reflete fielmente a arquitetura \textit{Medallion} descrita na Secção 2, organizando as 16 tabelas da base de dados PostgreSQL em três camadas distintas (Bronze, Silver, Gold), complementadas por um modelo dimensional otimizado para \textit{Business Intelligence}. O sistema implementa duas redes de relacionamentos independentes: (1) a rede \textit{Medallion} para o pipeline ETL, e (2) a rede \textit{Dimensional} para integração com ferramentas de BI.
+
+\subsection{Diagrama Entidade-Relacionamento}
+
+A Figura \ref{fig:er_medallion} apresenta o diagrama ER da arquitetura \textit{Medallion}, onde a tabela \texttt{silver\_companies} funciona como entidade central referenciada por todas as tabelas Silver e Gold. A Figura \ref{fig:er_dimensional} apresenta o modelo dimensional (\textit{Star Schema}) para integração com Power BI.
+
+% --- DIAGRAMA ER: ARQUITETURA MEDALLION ---
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    scale=0.68,
+    transform shape,
+    entity/.style={rectangle, draw=darkblue, fill=darkblue!10, text width=3.4cm, minimum height=1cm, align=center, font=\footnotesize\bfseries, rounded corners=3pt},
+    bronze/.style={entity, draw=bronze, fill=bronze!15},
+    silver/.style={entity, draw=silver!80!black, fill=silver!25},
+    gold/.style={entity, draw=gold!80!black, fill=gold!20},
+    attribute/.style={font=\tiny, text width=3.4cm, align=left},
+    relation/.style={->, >=stealth, thick, darkblue},
+    etlflow/.style={->, dashed, thick, bronze!80!black},
+    label/.style={font=\small\bfseries, text=darkblue}
+]
+
+% === CAMADA BRONZE (coluna esquerda) ===
+\node[bronze] (b_income) at (0, 6) {bronze\_income\_statement};
+\node[bronze] (b_balance) at (0, 3) {bronze\_balance\_sheet};
+\node[bronze] (b_cash) at (0, 0) {bronze\_cash\_flow};
+\node[label] at (0, 8) {BRONZE};
+\node[font=\tiny\itshape, text=bronze!70!black] at (0, 7.4) {(Dados Brutos --- sem FKs)};
+
+% === CAMADA SILVER (coluna central) ===
+\node[silver] (s_income) at (7, 6) {silver\_income\_statement};
+\node[silver] (s_companies) at (7, 3) {silver\_companies};
+\node[silver] (s_balance) at (7, 0) {silver\_balance\_sheet};
+\node[silver] (s_cash) at (7, -3) {silver\_cash\_flow};
+\node[label] at (7, 8) {SILVER};
+\node[font=\tiny\itshape, text=silver!50!black] at (7, 7.4) {(Dados Normalizados)};
+
+% === CAMADA GOLD (coluna direita) ===
+\node[gold] (g_health) at (14, 6) {gold\_financial\_health};
+\node[gold] (g_kpi) at (14, 3) {gold\_kpi\_dashboard};
+\node[gold] (g_trends) at (14, 0) {gold\_trends};
+\node[label] at (14, 8) {GOLD};
+\node[font=\tiny\itshape, text=gold!60!black] at (14, 7.4) {(Dados Analíticos)};
+
+% === FLUXO ETL Bronze -> Silver (setas tracejadas horizontais) ===
+\draw[etlflow] (b_income.east) -- node[above, font=\tiny, text=bronze!70!black] {ETL} (s_income.west);
+\draw[etlflow] (b_balance.east) -- node[above, font=\tiny, text=bronze!70!black] {ETL} (s_companies.west);
+\draw[etlflow] (b_cash.east) -- node[above, font=\tiny, text=bronze!70!black] {ETL} (s_balance.west);
+
+% === RELAÇÕES FK Silver (vertical, bem espaçadas) ===
+% s_income -> s_companies
+\draw[relation] ([xshift=0.8cm]s_income.south) -- ([xshift=0.8cm]s_companies.north) 
+    node[midway, right, font=\tiny] {FK: ticker};
+% s_balance -> s_companies  
+\draw[relation] ([xshift=-0.8cm]s_companies.south) -- ([xshift=-0.8cm]s_balance.north)
+    node[midway, left, font=\tiny] {FK: ticker};
+% s_cash -> s_companies
+\draw[relation] (s_cash.north) -- ++(0, 0.8) -- ++(-2.5, 0) -- ++(0, 3.7) -- ++(2.5, 0) -- ([xshift=-0.3cm]s_companies.south)
+    node[pos=0.3, left, font=\tiny] {FK: ticker};
+
+% === RELAÇÕES FK Gold -> Silver (horizontais bem separadas) ===
+\draw[relation] (g_health.west) -- ++(-2.5, 0) -- ++(0, -3) -- (s_companies.east)
+    node[pos=0.15, above, font=\tiny] {FK: ticker};
+\draw[relation] (g_kpi.west) -- (s_companies.east)
+    node[midway, above, font=\tiny] {FK: ticker};
+\draw[relation] (g_trends.west) -- ++(-2.5, 0) -- ++(0, 3) -- ([yshift=-0.15cm]s_companies.east)
+    node[pos=0.15, above, font=\tiny] {FK: ticker};
+
+% === LEGENDA ===
+\node[font=\tiny, anchor=west] at (-1.5, -4.5) {
+    \tikz{\draw[->, dashed, thick, bronze!80!black] (0,0) -- (0.8,0);} Fluxo ETL \quad
+    \tikz{\draw[->, thick, darkblue] (0,0) -- (0.8,0);} Chave Estrangeira (FK)
+};
+
+\end{tikzpicture}
+\caption{Diagrama ER da Arquitetura Medallion --- 10 tabelas organizadas em Bronze (3), Silver (4) e Gold (3). A tabela \texttt{silver\_companies} é a entidade central, referenciada por todas as tabelas Silver e Gold através do atributo \texttt{ticker}.}
+\label{fig:er_medallion}
+\end{figure}
+
+% --- DIAGRAMA ER: MODELO DIMENSIONAL (STAR SCHEMA) ---
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    scale=0.72,
+    transform shape,
+    dim/.style={rectangle, draw=lightblue!80!black, fill=lightblue!20, text width=3.8cm, minimum height=1.2cm, align=center, font=\footnotesize\bfseries, rounded corners=3pt},
+    fact/.style={rectangle, draw=darkblue, fill=darkblue!12, text width=3.8cm, minimum height=1.2cm, align=center, font=\footnotesize\bfseries, rounded corners=3pt},
+    relation/.style={->, >=stealth, thick, darkblue},
+    label/.style={font=\small\bfseries, text=darkblue}
+]
+
+% === DIMENSÃO CENTRAL (dim_companies no centro) ===
+\node[dim] (dim_companies) at (0, 0) {dim\_companies};
+\node[font=\tiny, below=0.1cm of dim_companies, text width=4cm, align=center] {
+    \texttt{ticker} (PK)\\
+    \texttt{sector\_id} (FK)\\
+    \texttt{company\_name}, \texttt{industry}\\
+    \texttt{market\_cap}, \texttt{beta}
+};
+
+% === DIMENSÃO SECTORS (à esquerda) ===
+\node[dim] (dim_sectors) at (-6, 0) {dim\_sectors};
+\node[font=\tiny, below=0.1cm of dim_sectors, text width=3cm, align=center] {
+    \texttt{sector\_id} (PK)\\
+    \texttt{sector\_name}
+};
+
+% === TABELAS DE FACTOS (à direita, em coluna) ===
+\node[fact] (fact_prices) at (6.5, 3) {fact\_daily\_prices};
+\node[font=\tiny, right=0.2cm of fact_prices, text width=3.5cm, align=left] {
+    \texttt{price\_id} (PK), \texttt{ticker} (FK)\\
+    \texttt{trade\_date}, \texttt{open\_price}\\
+    \texttt{close\_price}, \texttt{volume}
+};
+
+\node[fact] (fact_fin) at (6.5, 0) {fact\_financials};
+\node[font=\tiny, right=0.2cm of fact_fin, text width=3.5cm, align=left] {
+    \texttt{financial\_id} (PK), \texttt{ticker} (FK)\\
+    \texttt{report\_date}, \texttt{revenue}\\
+    \texttt{net\_income}, \texttt{operating\_cf}
+};
+
+\node[fact] (fact_rec) at (6.5, -3) {fact\_recommendations};
+\node[font=\tiny, right=0.2cm of fact_rec, text width=3.5cm, align=left] {
+    \texttt{rec\_id} (PK), \texttt{ticker} (FK)\\
+    \texttt{rec\_date}, \texttt{buy\_count}\\
+    \texttt{sell\_count}, \texttt{consensus}
+};
+
+% === LABELS ===
+\node[label, anchor=south] at (dim_sectors.north) {DIMENSÃO};
+\node[label, anchor=south] at (dim_companies.north) {DIMENSÃO};
+\node[label] at (6.5, 5) {FACTOS};
+
+% === RELAÇÕES (bem separadas, sem sobreposição) ===
+% dim_sectors -> dim_companies
+\draw[relation] (dim_sectors.east) -- (dim_companies.west)
+    node[midway, above, font=\tiny] {1:N};
+
+% dim_companies -> fact_prices (linha superior)
+\draw[relation] (dim_companies.east) -- ++(1.5, 0) |- (fact_prices.west)
+    node[pos=0.75, above, font=\tiny] {1:N};
+
+% dim_companies -> fact_financials (linha do meio, direta)
+\draw[relation] ([yshift=0.1cm]dim_companies.east) -- ++(1, 0) -- (fact_fin.west)
+    node[pos=0.6, above, font=\tiny] {1:N};
+
+% dim_companies -> fact_recommendations (linha inferior)
+\draw[relation] ([yshift=-0.1cm]dim_companies.east) -- ++(1.5, 0) |- (fact_rec.west)
+    node[pos=0.75, below, font=\tiny] {1:N};
+
+\end{tikzpicture}
+\caption{Diagrama ER do Modelo Dimensional (\textit{Star Schema}) --- 5 tabelas otimizadas para Power BI. A tabela \texttt{dim\_companies} é o centro da estrela, referenciada por todas as tabelas de factos. A relação \texttt{dim\_sectors} $\rightarrow$ \texttt{dim\_companies} permite agregações por setor.}
+\label{fig:er_dimensional}
+\end{figure}
+
+\textbf{Nota arquitetural:} As duas redes (Medallion e Dimensional) são independentes e não partilham chaves estrangeiras entre si. Esta separação permite que o pipeline ETL evolua sem impactar as estruturas de BI, e vice-versa.
+
+\subsection{Camada Bronze --- Dados Brutos}
+
+A camada Bronze armazena os dados extraídos diretamente das fontes externas, sem qualquer transformação. Esta abordagem preserva a informação original e permite reprocessamento futuro caso a lógica de transformação evolua. As tabelas desta camada seguem uma estrutura \textit{Entity-Attribute-Value} (EAV), flexível para acomodar métricas heterogéneas.
+
+\begin{table}[H]
+\centering
+\caption{Estrutura das tabelas da camada Bronze}
+\label{tab:bronze_structure}
+\begin{tabular}{@{}lp{8.5cm}@{}}
+\toprule
+\textbf{Tabela} & \textbf{Atributos Principais} \\
+\midrule
+\texttt{bronze\_income\_statement} & \texttt{id} (PK), \texttt{ticker}, \texttt{company\_name}, \texttt{fiscal\_year}, \texttt{metric\_name}, \texttt{metric\_value}, \texttt{raw\_value}, \texttt{extracted\_at} \\
+\midrule
+\texttt{bronze\_balance\_sheet} & \texttt{id} (PK), \texttt{ticker}, \texttt{company\_name}, \texttt{fiscal\_year}, \texttt{metric\_name}, \texttt{metric\_value}, \texttt{raw\_value}, \texttt{extracted\_at} \\
+\midrule
+\texttt{bronze\_cash\_flow} & \texttt{id} (PK), \texttt{ticker}, \texttt{company\_name}, \texttt{fiscal\_year}, \texttt{metric\_name}, \texttt{metric\_value}, \texttt{raw\_value}, \texttt{extracted\_at} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O campo \texttt{raw\_value} preserva o valor original em formato texto, enquanto \texttt{metric\_value} contém a conversão numérica. O \textit{timestamp} \texttt{extracted\_at} permite rastreabilidade temporal das extrações.
+
+\subsection{Camada Silver --- Dados Normalizados}
+
+A camada Silver contém dados limpos, validados e estruturados em formato relacional normalizado. A tabela \texttt{silver\_companies} funciona como entidade central, sendo referenciada por todas as outras tabelas Silver através de chaves estrangeiras no atributo \texttt{ticker}.
+
+\begin{table}[H]
+\centering
+\caption{Estrutura das tabelas da camada Silver}
+\label{tab:silver_structure}
+\begin{tabular}{@{}lp{8.5cm}@{}}
+\toprule
+\textbf{Tabela} & \textbf{Atributos Principais} \\
+\midrule
+\texttt{silver\_companies} & \texttt{ticker} (PK), \texttt{company\_name}, \texttt{sector}, \texttt{last\_updated} \\
+\midrule
+\texttt{silver\_income\_statement} & \texttt{id} (PK), \texttt{ticker} (FK), \texttt{fiscal\_year}, \texttt{revenue}, \texttt{cost\_of\_revenue}, \texttt{gross\_profit}, \texttt{operating\_expenses}, \texttt{operating\_income}, \texttt{net\_income}, \texttt{ebitda}, \texttt{eps\_basic}, \texttt{eps\_diluted} \\
+\midrule
+\texttt{silver\_balance\_sheet} & \texttt{id} (PK), \texttt{ticker} (FK), \texttt{fiscal\_year}, \texttt{total\_assets}, \texttt{total\_liabilities}, \texttt{total\_equity}, \texttt{current\_assets}, \texttt{current\_liabilities}, \texttt{cash\_and\_equivalents}, \texttt{total\_debt}, \texttt{retained\_earnings} \\
+\midrule
+\texttt{silver\_cash\_flow} & \texttt{id} (PK), \texttt{ticker} (FK), \texttt{fiscal\_year}, \texttt{operating\_cash\_flow}, \texttt{investing\_cash\_flow}, \texttt{financing\_cash\_flow}, \texttt{free\_cash\_flow}, \texttt{capital\_expenditures}, \texttt{dividends\_paid}, \texttt{net\_change\_in\_cash} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Camada Gold --- Dados Analíticos}
+
+A camada Gold contém tabelas derivadas, pré-calculadas e otimizadas para consumo direto por dashboards e ferramentas de análise. Estas tabelas referenciam \texttt{silver\_companies} e agregam métricas calculadas a partir das tabelas Silver.
+
+\begin{table}[H]
+\centering
+\caption{Estrutura das tabelas da camada Gold}
+\label{tab:gold_structure}
+\begin{tabular}{@{}lp{8.5cm}@{}}
+\toprule
+\textbf{Tabela} & \textbf{Atributos Principais} \\
+\midrule
+\texttt{gold\_financial\_health} & \texttt{id} (PK), \texttt{ticker} (FK), \texttt{company\_name}, \texttt{fiscal\_year}, rácios de liquidez (\texttt{current\_ratio}, \texttt{quick\_ratio}, \texttt{cash\_ratio}), rentabilidade (\texttt{gross\_margin}, \texttt{operating\_margin}, \texttt{net\_margin}, \texttt{roe}, \texttt{roa}), alavancagem (\texttt{debt\_to\_equity}, \texttt{debt\_to\_assets}), \texttt{health\_score}, \texttt{health\_status}, \texttt{analysis\_notes} \\
+\midrule
+\texttt{gold\_kpi\_dashboard} & \texttt{id} (PK), \texttt{ticker} (FK), \texttt{company\_name}, \texttt{fiscal\_year}, \texttt{revenue}, \texttt{revenue\_growth}, \texttt{net\_income}, \texttt{profit\_growth}, \texttt{health\_score}, \texttt{health\_status}, rankings (\texttt{revenue\_rank}, \texttt{profit\_rank}, \texttt{health\_rank}) \\
+\midrule
+\texttt{gold\_trends} & \texttt{id} (PK), \texttt{ticker} (FK), \texttt{company\_name}, \texttt{metric\_name}, valores históricos (\texttt{year\_1} a \texttt{year\_5}), \texttt{cagr\_5y}, \texttt{trend\_direction} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A tabela \texttt{gold\_financial\_health} materializa o algoritmo de \textit{Health Score} detalhado na Secção 4, enquanto \texttt{gold\_kpi\_dashboard} fornece os indicadores prontos para visualização. A tabela \texttt{gold\_trends} calcula tendências históricas e CAGR (\textit{Compound Annual Growth Rate}) a 5 anos.
+
+\subsection{Modelo Dimensional para Business Intelligence}
+
+Paralelamente às camadas \textit{Medallion}, o sistema implementa um modelo dimensional (\textit{Star Schema}) otimizado para integração com ferramentas de BI como Power BI. Este modelo separa dimensões (entidades descritivas) de factos (métricas quantitativas).
+
+\begin{table}[H]
+\centering
+\caption{Estrutura do modelo dimensional}
+\label{tab:dimensional_structure}
+\begin{tabular}{@{}llp{7cm}@{}}
+\toprule
+\textbf{Tipo} & \textbf{Tabela} & \textbf{Atributos Principais} \\
+\midrule
+Dimensão & \texttt{dim\_sectors} & \texttt{sector\_id} (PK), \texttt{sector\_name} \\
+\midrule
+Dimensão & \texttt{dim\_companies} & \texttt{ticker} (PK), \texttt{company\_name}, \texttt{sector\_id} (FK), \texttt{industry}, \texttt{market\_cap}, \texttt{beta}, \texttt{forward\_pe} \\
+\midrule
+Facto & \texttt{fact\_daily\_prices} & \texttt{price\_id} (PK), \texttt{ticker} (FK), \texttt{trade\_date}, \texttt{open\_price}, \texttt{close\_price}, \texttt{volume} \\
+\midrule
+Facto & \texttt{fact\_financials} & \texttt{financial\_id} (PK), \texttt{ticker} (FK), \texttt{report\_date}, \texttt{revenue}, \texttt{net\_income}, \texttt{rnd\_expenses}, \texttt{operating\_cash\_flow} \\
+\midrule
+Facto & \texttt{fact\_recommendations} & \texttt{rec\_id} (PK), \texttt{ticker} (FK), \texttt{rec\_date}, \texttt{buy\_count}, \texttt{sell\_count}, \texttt{consensus\_score} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Integridade Referencial e Índices}
+
+O modelo implementa um conjunto robusto de restrições de integridade referencial:
+
+\begin{itemize}
+    \item \textbf{Camada Medallion:} Todas as tabelas Silver e Gold referenciam \texttt{silver\_companies.ticker} como chave estrangeira, garantindo que não existem registos financeiros para empresas não catalogadas.
+    
+    \item \textbf{Modelo Dimensional:} As tabelas de factos (\texttt{fact\_*}) referenciam \texttt{dim\_companies.ticker}, e \texttt{dim\_companies} referencia \texttt{dim\_sectors.sector\_id}, mantendo a hierarquia empresa-setor.
+    
+    \item \textbf{Índices de Performance:} Foram criados índices B-tree nos campos \texttt{ticker} das tabelas Silver e Gold para otimizar \textit{joins} e consultas filtradas por empresa.
+\end{itemize}
+
+%==============================================================================
+\section{Metodologia de Avaliação Financeira}
+%==============================================================================
+
+\subsection{Indicadores-Chave de Performance (KPIs)}
+
+O sistema calcula um conjunto abrangente de indicadores financeiros, organizados em quatro categorias fundamentais de análise. Cada indicador é comparado com \textit{benchmarks} setoriais para determinar a sua contribuição para a avaliação global.
+
+\subsubsection{Indicadores de Liquidez}
+
+Os indicadores de liquidez avaliam a capacidade da empresa em honrar as suas obrigações de curto prazo, constituindo uma medida fundamental de estabilidade financeira imediata.
+
+\begin{table}[H]
+\centering
+\caption{Indicadores de liquidez e respetivos benchmarks}
+\label{tab:kpi_liquidez}
+\begin{tabular}{@{}llc@{}}
+\toprule
+\textbf{Indicador} & \textbf{Fórmula} & \textbf{Benchmark} \\
+\midrule
+Current Ratio & $\displaystyle\frac{\text{Ativos Correntes}}{\text{Passivos Correntes}}$ & $\geq 1.5$ \\[0.4cm]
+Quick Ratio & $\displaystyle\frac{\text{Ativos Correntes} - \text{Inventários}}{\text{Passivos Correntes}}$ & $\geq 1.0$ \\[0.4cm]
+Cash Ratio & $\displaystyle\frac{\text{Caixa e Equivalentes}}{\text{Passivos Correntes}}$ & $\geq 0.25$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Indicadores de Rentabilidade}
+
+A rentabilidade constitui a dimensão com maior ponderação no modelo, refletindo a capacidade da empresa em gerar lucro a partir das suas operações.
+
+\begin{table}[H]
+\centering
+\caption{Indicadores de rentabilidade e respetivos benchmarks}
+\label{tab:kpi_rentabilidade}
+\begin{tabular}{@{}llc@{}}
+\toprule
+\textbf{Indicador} & \textbf{Fórmula} & \textbf{Benchmark} \\
+\midrule
+Margem Bruta & $\displaystyle\frac{\text{Lucro Bruto}}{\text{Receita}} \times 100$ & $\geq 30\%$ \\[0.4cm]
+Margem Operacional & $\displaystyle\frac{\text{Resultado Operacional}}{\text{Receita}} \times 100$ & $\geq 15\%$ \\[0.4cm]
+Margem Líquida & $\displaystyle\frac{\text{Resultado Líquido}}{\text{Receita}} \times 100$ & $\geq 10\%$ \\[0.4cm]
+ROE & $\displaystyle\frac{\text{Resultado Líquido}}{\text{Capital Próprio}} \times 100$ & $\geq 15\%$ \\[0.4cm]
+ROA & $\displaystyle\frac{\text{Resultado Líquido}}{\text{Total de Ativos}} \times 100$ & $\geq 5\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Indicadores de Alavancagem}
+
+Os rácios de alavancagem medem o grau de endividamento da empresa, refletindo o risco financeiro estrutural assumido.
+
+\begin{table}[H]
+\centering
+\caption{Indicadores de alavancagem e respetivos benchmarks}
+\label{tab:kpi_alavancagem}
+\begin{tabular}{@{}llc@{}}
+\toprule
+\textbf{Indicador} & \textbf{Fórmula} & \textbf{Benchmark} \\
+\midrule
+Debt-to-Equity & $\displaystyle\frac{\text{Dívida Total}}{\text{Capital Próprio}}$ & $\leq 1.0$ \\[0.4cm]
+Debt-to-Assets & $\displaystyle\frac{\text{Dívida Total}}{\text{Total de Ativos}} \times 100$ & $\leq 50\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Indicadores de Fluxo de Caixa}
+
+A análise de fluxo de caixa avalia a capacidade de geração de liquidez operacional, sendo particularmente relevante para avaliar a sustentabilidade do modelo de negócio.
+
+\begin{table}[H]
+\centering
+\caption{Indicadores de fluxo de caixa e respetivos benchmarks}
+\label{tab:kpi_cashflow}
+\begin{tabular}{@{}llc@{}}
+\toprule
+\textbf{Indicador} & \textbf{Fórmula} & \textbf{Benchmark} \\
+\midrule
+OCF Ratio & $\displaystyle\frac{\text{Cash Flow Operacional}}{\text{Passivos Correntes}}$ & $\geq 1.0$ \\[0.4cm]
+FCF Margin & $\displaystyle\frac{\text{Free Cash Flow}}{\text{Receita}} \times 100$ & $\geq 15\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Algoritmo de Health Score}
+
+O \textit{Health Score} constitui o contributo metodológico central deste projeto --- um índice composto que sintetiza múltiplas dimensões de análise financeira numa métrica unificada de 0 a 100 pontos. O algoritmo implementa uma média ponderada das quatro dimensões de análise, conforme detalhado na Tabela \ref{tab:pesos}.
+
+\begin{table}[H]
+\centering
+\caption{Ponderação das dimensões no cálculo do Health Score}
+\label{tab:pesos}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Dimensão} & \textbf{Peso} & \textbf{Pontuação Máxima} \\
+\midrule
+Rentabilidade & 30\% & 30 pontos \\
+Alavancagem & 25\% & 25 pontos \\
+Cash Flow & 25\% & 25 pontos \\
+Liquidez & 20\% & 20 pontos \\
+\midrule
+\textbf{Total} & \textbf{100\%} & \textbf{100 pontos} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A pontuação de cada dimensão é calculada através de uma função escalonada que mapeia o valor do indicador para uma pontuação entre 0 e o máximo da dimensão. Por exemplo, para a Margem Líquida (componente da Rentabilidade):
+
+\begin{itemize}
+    \item Margem Líquida $\geq 20\%$: Pontuação máxima (15 pontos)
+    \item Margem Líquida $\geq 10\%$: 12 pontos
+    \item Margem Líquida $\geq 5\%$: 8 pontos
+    \item Margem Líquida $< 5\%$: Pontuação proporcional (0-8 pontos)
+\end{itemize}
+
+\subsection{Classificação de Saúde Financeira}
+
+A pontuação numérica do \textit{Health Score} é traduzida numa classificação qualitativa que facilita a interpretação por utilizadores não especializados. Os limiares foram calibrados com base em \textit{benchmarks} históricos do índice S\&P 500 Information Technology.
+
+\begin{table}[H]
+\centering
+\caption{Classificação qualitativa do Health Score}
+\label{tab:classificacao}
+\begin{tabular}{@{}cll@{}}
+\toprule
+\textbf{Intervalo} & \textbf{Classificação} & \textbf{Interpretação} \\
+\midrule
+80 -- 100 & \textcolor{excellent}{\textbf{Excellent}} & Posição financeira robusta, liderança setorial \\
+65 -- 79 & \textcolor{good}{\textbf{Good}} & Saúde financeira sólida, pequenas áreas de melhoria \\
+50 -- 64 & \textcolor{fair}{\textbf{Fair}} & Desempenho mediano, algumas áreas requerem atenção \\
+35 -- 49 & \textcolor{concerning}{\textbf{Concerning}} & Sinais de alerta, múltiplas métricas abaixo dos benchmarks \\
+0 -- 34 & \textcolor{poor}{\textbf{Poor}} & Dificuldades financeiras sérias, risco elevado \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{Análise de Resultados}
+%==============================================================================
+
+\subsection{Visão Geral do Universo Analisado}
+
+A execução do pipeline sobre os dados do último ano fiscal disponível permitiu obter uma caracterização abrangente da saúde financeira das dez empresas tecnológicas selecionadas. A Tabela \ref{tab:resultados} apresenta os resultados ordenados pelo \textit{Health Score}, incluindo a classificação atribuída e uma síntese diagnóstica.
+
+\begin{table}[H]
+\centering
+\caption{Resultados da avaliação de saúde financeira --- Ano Fiscal mais recente}
+\label{tab:resultados}
+\begin{tabular}{@{}clccl@{}}
+\toprule
+\textbf{\#} & \textbf{Empresa} & \textbf{Score} & \textbf{Status} & \textbf{Diagnóstico Sintético} \\
+\midrule
+1 & NVIDIA & 100.0 & Excellent & Performance excecional impulsionada pela IA \\
+2 & Meta & 100.0 & Excellent & Elevada eficiência de capital e geração de caixa \\
+3 & Alphabet & 94.4 & Excellent & Balanço conservador, forte posição de liquidez \\
+4 & Microsoft & 88.1 & Excellent & Crescimento estável e diversificado (Cloud/SaaS) \\
+5 & Netflix & 84.1 & Excellent & Melhoria significativa no FCF pós-reestruturação \\
+6 & ASML & 83.8 & Excellent & Forte ``moat'' tecnológico refletido nas margens \\
+7 & Apple & 76.0 & Good & Penalizada pela elevada alavancagem (buybacks) \\
+8 & Amazon & 72.6 & Good & Margens de retalho pressionam média global \\
+9 & Broadcom & 71.4 & Good & Impacto temporário de custos de M\&A \\
+10 & Tesla & 58.6 & Fair & Compressão de margens face à concorrência \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Análise por Dimensão}
+
+A decomposição dos resultados por dimensão de análise permite identificar padrões transversais ao setor e particularidades de cada empresa.
+
+\subsubsection{Rentabilidade}
+
+O setor tecnológico destaca-se pela elevada rentabilidade média, com margens líquidas que ultrapassam consistentemente os 15\%. A NVIDIA lidera nesta dimensão, beneficiando do forte \textit{pricing power} associado à procura exponencial de hardware para inteligência artificial. Em contraste, a Amazon apresenta margens mais comprimidas devido à natureza do seu negócio de retalho, embora os serviços cloud (AWS) operem com rentabilidade significativamente superior.
+
+\subsubsection{Liquidez}
+
+A generalidade das empresas apresenta rácios de liquidez adequados, com \textit{current ratios} superiores a 1.0. A Alphabet destaca-se particularmente nesta dimensão, mantendo uma posição de tesouraria conservadora que lhe confere resiliência a choques de mercado. A Apple, apesar de financeiramente sólida, apresenta indicadores de liquidez mais justos, reflexo da sua política de retorno de capital aos acionistas.
+
+\subsubsection{Alavancagem}
+
+A análise dos rácios de endividamento revela abordagens distintas à estrutura de capital. Empresas como a Apple e a Broadcom apresentam níveis de dívida mais elevados --- no caso da Apple, justificados pela estratégia de recompra de ações financiada por emissão de dívida a taxas favoráveis. A Meta e a Alphabet mantêm estruturas de capital mais conservadoras, com baixo recurso a financiamento externo.
+
+\subsubsection{Fluxo de Caixa}
+
+A capacidade de geração de \textit{free cash flow} é um dos indicadores mais reveladores da qualidade do modelo de negócio. A NVIDIA e a Meta destacam-se com margens de FCF superiores a 30\%, indicando eficiência operacional e baixas necessidades de investimento de manutenção. Importa notar que os elevados investimentos em infraestrutura de IA por parte das grandes tecnológicas têm gerado preocupações entre analistas, com alguns a questionarem se os retornos justificarão os gastos massivos já realizados \cite{wsj_coreweave_2025}. A Netflix apresentou uma melhoria notável nesta dimensão após a reestruturação do seu modelo de produção de conteúdos.
+
+\subsection{Discussão Crítica dos Resultados}
+
+A análise revela uma robustez generalizada do setor tecnológico, com uma pontuação média de 82.9 pontos. No entanto, importa contextualizar estes resultados fundamentais face ao sentimento de mercado. Analistas têm questionado se a valorização das chamadas ``Magnificent Seven'' reflete uma nova era económica sustentável ou uma ``dangerous mania'' comparável a bolhas passadas \cite{wsj_mag7_2025}. O \textit{Health Score} aqui apresentado serve como um contraponto objetivo, focando-se na performance tangível em vez de expectativas especulativas.
+
+Adicionalmente, destacam-se os seguintes pontos:
+
+\begin{enumerate}
+    \item \textbf{Caso Apple (76.0 pontos):} A classificação ``Good'' em vez de ``Excellent'' não reflete fragilidade financeira, mas antes a sensibilidade do algoritmo a métricas de alavancagem. A estratégia de recompra de ações agressiva, embora eficiente do ponto de vista fiscal, penaliza os rácios de dívida.
+    
+    \item \textbf{Caso Tesla (58.6 pontos):} A classificação ``Fair'' reflete a compressão de margens resultante da guerra de preços no mercado de veículos elétricos. Apesar de a empresa permanecer lucrativa, as métricas de rentabilidade deterioraram-se significativamente face a anos anteriores.
+    
+    \item \textbf{Dicotomia Sectorial:} Observa-se uma clara distinção entre empresas de software/serviços (margens elevadas, baixa intensidade de capital) e empresas de hardware/semicondutores (ciclos mais voláteis, dependentes de dinâmicas de oferta/procura).
+\end{enumerate}
+
+%==============================================================================
+\section{Componentes de Self-Service BI}
+%==============================================================================
+
+\subsection{Dashboard Interativo}
+
+O sistema inclui um dashboard web desenvolvido em Streamlit, oferecendo uma interface intuitiva para exploração dos dados financeiros. As principais funcionalidades incluem:
+
+\begin{itemize}
+    \item \textbf{Seleção de Empresa:} Menu \textit{dropdown} para navegação entre as 10 empresas
+    \item \textbf{Visualização do Health Score:} Gráfico de gauge com indicação visual da classificação
+    \item \textbf{Métricas Principais:} Cards com indicadores-chave (Receita, Lucro, Ativos)
+    \item \textbf{Análise Detalhada por Categoria:} Expansão de cada dimensão com métricas individuais
+    \item \textbf{Tendências Históricas:} Gráficos de evolução temporal (5 anos)
+    \item \textbf{Rankings Comparativos:} Ordenação de empresas por diferentes métricas
+\end{itemize}
+
+
+\subsection{Exportações Excel}
+
+O sistema gera automaticamente ficheiros Excel estruturados, permitindo análises adicionais em ambiente familiar para a maioria dos utilizadores de negócio. São gerados:
+
+\begin{itemize}
+    \item Um ficheiro consolidado por empresa contendo todas as demonstrações financeiras
+    \item Ficheiros separados para \textit{Income Statement}, \textit{Balance Sheet} e \textit{Cash Flow}
+    \item Ficheiro de \textit{Financial Health} com todos os KPIs e \textit{Health Score}
+\end{itemize}
+Todos estes ficheiros extraidos são simplesmente dados ``raw``, no entanto com as respetivas alterações de cada uma das suas camadas. 
+
+
+\subsection{Instruções de Utilização}
+
+A execução do sistema requer a instalação prévia das dependências e configuração da base de dados. (É partido do pressuposto que um utilizador de uma dashboard financeira conheça pelo menos os termos financeiros e o que significam) Os passos necessários são:
+
+\begin{enumerate}
+    \item \textbf{Instalação de Dependências:}
+    \begin{verbatim}
+    pip install -r requirements.txt
+    \end{verbatim}
+    
+    \item \textbf{Configuração da Base de Dados:} Criar uma base de dados PostgreSQL e configurar as credenciais no ficheiro \texttt{config.py}.
+    
+    \item \textbf{Execução do Pipeline ETL:}
+    \begin{verbatim}
+    python src/data_pipeline/run_pipeline.py
+    \end{verbatim}
+    Este comando executa sequencialmente a extração (Bronze), transformação (Silver) e cálculo de KPIs (Gold).
+    
+    \item \textbf{Lançamento do Dashboard:}
+    \begin{verbatim}
+    streamlit run src/data_pipeline/dashboard.py
+    \end{verbatim}
+    O dashboard fica disponível em \texttt{http://localhost:8501}.
+    
+    \item \textbf{Exportação Excel (opcional):}
+    \begin{verbatim}
+    python src/data_pipeline/export_excel.py
+    \end{verbatim}
+    Gera ficheiros Excel estruturados em \texttt{data/gold/excel\_export/}.
+\end{enumerate}
+
+%==============================================================================
+\section{Resultados e Insights}
+%==============================================================================
+
+\subsection{Métricas do Sistema}
+
+O pipeline desenvolvido processa e analisa um volume significativo de dados financeiros:
+
+\begin{itemize}
+    \item \textbf{10 empresas} monitorizadas em tempo real
+    \item \textbf{5 anos} de dados históricos por empresa
+    \item \textbf{15+ KPIs} calculados automaticamente
+    \item \textbf{Health Score} composto para cada combinação empresa/ano
+    \item \textbf{16 tabelas} distribuídas pela arquitetura Medallion e modelo dimensional
+\end{itemize}
+
+\subsection{Insights Principais}
+
+A análise dos dados, cruzada com o contexto macroeconómico atual, permitiu identificar padrões relevantes no universo das empresas tecnológicas:
+
+\begin{itemize}
+    \item \textbf{Margens Elevadas:} As empresas tecnológicas tendem a apresentar margens de lucro líquido entre 20\% e 30\%, significativamente superiores à média de outros setores.
+    
+    \item \textbf{Liderança em Health Score:} A \textbf{NVIDIA} lidera consistentemente o ranking de saúde financeira (score 100/100), impulsionada pelo forte crescimento no segmento de IA, num fenómeno de mercado que alguns analistas classificam como uma potencial "nova era económica" \cite{wsj_mag7_2025}. A acompanhar com o mesmo score temos a \textbf{META}, cujo resultado reflete a aposta massiva em \textit{Data Centers} e infraestrutura de IA para recuperar competitividade \cite{ft_meta_2025}.
+    
+    \item \textbf{Volatilidade da Tesla:} A \textbf{Tesla} apresenta a maior volatilidade nos indicadores financeiros. Para além da natureza disruptiva do setor, a empresa enfrenta escrutínio regulatório sobre as suas políticas comerciais \cite{wsj_mag7_2025}, o que adiciona incerteza à sua avaliação fundamental.
+    
+    \item \textbf{Resiliência Geopolítica:} Apesar das restrições comerciais impostas pelos EUA, empresas como a NVIDIA continuam a ver os seus produtos de alta performance (chips) a encontrar caminhos para mercados restritos através de serviços cloud, demonstrando a inelsticidade da procura por hardware de IA \cite{barrons_chips_2025}.
+    
+    \item \textbf{Estabilidade dos Incumbentes:} Empresas consolidadas como \textbf{Apple} e \textbf{Microsoft} demonstram estabilidade superior nos indicadores, beneficiando de modelos de negócio diversificados e recorrentes.
+    
+    \item \textbf{Liquidez Variável:} Observa-se uma dispersão significativa nos rácios de liquidez, com empresas como a Meta a manterem reservas de caixa elevadas enquanto outras operam com margens mais reduzidas.
+\end{itemize}
+
+\subsection{Valor para Stakeholders}
+
+O sistema desenvolvido oferece valor diferenciado para diferentes perfis de utilizadores:
+
+\begin{itemize}
+    \item \textbf{Investidores:} Identificação rápida de empresas financeiramente saudáveis e comparação objetiva entre alternativas de investimento.
+    
+    \item \textbf{Analistas Financeiros:} Acesso a métricas padronizadas e análises comparativas que aceleram o processo de \textit{due diligence}.
+    
+    \item \textbf{Gestores Corporativos:} Benchmark com concorrentes diretos e identificação de áreas de melhoria financeira.
+    
+    \item \textbf{Investigadores:} Dados estruturados para estudos académicos sobre performance financeira do setor tecnológico.
+\end{itemize}
+
+%==============================================================================
+\section{Conclusões e Trabalho Futuro}
+%==============================================================================
+
+\subsection{Síntese das Contribuições}
+
+O presente projeto alcançou com sucesso os objetivos propostos, materializando-se num sistema funcional e extensível para análise financeira automatizada. As principais contribuições incluem:
+
+\begin{enumerate}
+    \item \textbf{Arquitetura Medallion Aplicada:} Demonstração prática da aplicação do padrão Medallion a dados financeiros, garantindo rastreabilidade e qualidade progressiva.
+    
+    \item \textbf{Algoritmo de Health Score:} Desenvolvimento de uma metodologia de avaliação multicritério que sintetiza múltiplas dimensões de análise numa métrica unificada e interpretável.
+    
+    \item \textbf{Pipeline Escalável:} Implementação de um pipeline ETL modular que pode ser facilmente estendido para incluir novas empresas, setores ou métricas.
+    
+    \item \textbf{Democratização da Análise:} Disponibilização de ferramentas de \textit{Self-Service BI} que permitem a utilizadores não técnicos aceder a análises financeiras sofisticadas.
+    
+    \item \textbf{Dashboard Open-Source:} Solução completa e replicável disponibilizada publicamente, permitindo que outros investigadores e profissionais utilizem e adaptem o sistema.
+\end{enumerate}
+
+\subsection{Impacto do Projeto}
+
+A ferramenta desenvolvida contribui para \textbf{democratizar a análise financeira}, tornando-a acessível a utilizadores sem formação especializada em finanças ou programação. O sistema permite:
+
+\begin{itemize}
+    \item Redução do tempo de análise de horas para segundos
+    \item Padronização de métricas e metodologias de avaliação
+    \item Eliminação de erros humanos em cálculos complexos
+    \item Acesso a visualizações interativas sem necessidade de desenvolvimento
+    \item Exportação de dados em formatos compatíveis com ferramentas corporativas
+\end{itemize}
+
+\subsection{Escalabilidade do Sistema}
+
+A arquitetura modular do sistema foi concebida para suportar escalabilidade em múltiplas dimensões:
+
+\begin{enumerate}
+    \item \textbf{Adição de Novas Empresas:} Para adicionar uma nova empresa, basta incluir o seu ticker no ficheiro \texttt{config.py}. O pipeline automaticamente extrai, transforma e calcula os KPIs.
+    
+    \item \textbf{Expansão para Novos Setores:} A estrutura dimensional permite adicionar novas dimensões e factos para análise de setores diferentes, mantendo a integridade do modelo.
+    
+    \item \textbf{Novos Indicadores:} A camada Gold pode ser estendida com novos KPIs modificando o ficheiro \texttt{create\_gold.py}, sem impacto nas camadas inferiores.
+    
+    \item \textbf{Integração de Fontes Adicionais:} A camada Bronze pode incorporar novas fontes de dados (APIs alternativas, ficheiros CSV, bases de dados externas) através de novos módulos de extração.
+    
+    \item \textbf{Performance:} O modelo Star Schema otimiza consultas analíticas, e os índices implementados garantem tempos de resposta adequados mesmo com volumes de dados significativamente superiores.
+\end{enumerate}
+
+\subsection{Limitações Identificadas}
+
+Não obstante os resultados positivos, importa reconhecer as limitações do sistema desenvolvido:
+
+\begin{itemize}
+    \item \textbf{Dependência de Fonte Única:} A utilização exclusiva da API Yahoo Finance implica exposição a limitações de \textit{rate limiting}, possíveis \textit{delays} na atualização de dados e eventual descontinuação do serviço.
+    
+    \item \textbf{Calibração do Algoritmo:} Os pesos e limiares do \textit{Health Score} foram definidos com base em literatura e \textit{benchmarks} setoriais, constituindo um modelo simplificado que pode não refletir adequadamente especificidades de sub-setores ou condições de mercado atípicas.
+    
+    \item \textbf{Âmbito Setorial Restrito:} A análise limitada ao setor tecnológico impede comparações com empresas de outros setores que possam competir pelos mesmos recursos de investimento.
+    
+    \item \textbf{Ausência de Análise Qualitativa:} O sistema não incorpora fatores qualitativos como governança corporativa, critérios ESG, reputação de gestão ou notícias que podem influenciar significativamente a perceção de risco.
+    
+    \item \textbf{Eventos Específicos:} A metodologia não contempla análise de eventos específicos como fusões e aquisições (M\&A), reestruturações, litígios ou mudanças regulatórias que podem impactar significativamente a saúde financeira.
+    
+    \item \textbf{Análise Retrospetiva:} O sistema atual foca-se em dados históricos, não incorporando projeções ou estimativas de analistas que são fundamentais para decisões de investimento \textit{forward-looking}.
+\end{itemize}
+
+\subsection{Propostas de Trabalho Futuro}
+
+Para desenvolvimentos futuros, identificam-se as seguintes oportunidades de melhoria e expansão:
+
+\subsubsection{Expansão de Dados e Fontes}
+\begin{itemize}
+    \item \textbf{Integração de Dados Macroeconómicos:} Incorporação de indicadores como taxas de juro, inflação, índices de confiança e dados de PIB para contextualizar a performance empresarial no ambiente económico global.
+    
+    \item \textbf{Expansão Multi-Setorial:} Alargamento do âmbito de análise a outros setores (financeiro, saúde, energia), com calibração específica dos pesos do \textit{Health Score} por indústria.
+    
+    \item \textbf{Fontes Alternativas:} Integração de APIs alternativas (Alpha Vantage, Finnhub, Bloomberg) para redundância e validação cruzada de dados.
+    \item \textbf{Análise Comportamental:} A análise comportamental no mercado de ações, estudada principalmente através da lente das finanças comportamentais, investiga como as influências psicológicas e os \textit{"biases"} cognitivos afetam a tomada de decisões dos investidores e a dinâmica geral do mercado. Ela postula que os investidores nem sempre são os atores racionais assumidos pela teoria financeira tradicional e que as suas emoções podem levar a erros sistemáticos e anomalias de mercado, como bolhas e quedas. Esta análise hoje em dia pode ser feita através de através de \textit{Fine-Tuning} de um LLM (Large Language Model) para que este detete as emoções e que ``consequências`` podem gerar no mercado em tempo real, ainda que custoso em larga escala.
+
+    \item \textbf{Análise ``Fundamental``:} A análise fundamentalista (FA) é um método de avaliação de ações utilizado para determinar o valor intrínseco de um título, examinando fatores económicos, financeiros e outros fatores qualitativos relacionados. O objetivo é decidir se a ação está atualmente sobrevalorizada ou subvalorizada pelo mercado, principalmente para decisões de investimento a longo prazo, esta análise não se limita só a dados quantitativos, noticias e impactos no mercado, pode analisar o sentimento de 8-K fillings.
+\end{itemize}
+
+\subsubsection{Análise Avançada}
+\begin{itemize}
+    \item \textbf{Machine Learning Preditivo:} Implementação de modelos de aprendizagem automática (Random Forest, LSTM, XGBoost) para previsão de tendências de receita e identificação antecipada de deterioração financeira, ainda que se deva avançar com LSTM com cuidado pois têm as LSTMs ``esquecem`` depressa ou porque o algoritmo aprendeu que a informação é irrelevante (eficiência), ou porque a distância temporal é tão vasta que o sinal do gradiente se degrada antes de conseguir ajustar os pesos iniciais (limitação arquitetónica).
+    
+    \item \textbf{Deteção de Anomalias:} Desenvolvimento de algoritmos para identificação automática de valores atípicos e possíveis irregularidades contabilísticas, ainda já existam alguns como: KNN, DBSCAN, SVM's.
+
+\end{itemize}
+
+\subsubsection{Funcionalidades Operacionais}
+\begin{itemize}
+    \item \textbf{Sistema de Alertas:} Desenvolvimento de notificações automáticas (email, SMS, push) para variações significativas nos indicadores financeiros ou mudanças de categoria de \textit{Health Score}.
+    
+    \item \textbf{Dashboard Mobile-Responsive:} Adaptação da interface para dispositivos móveis, permitindo monitorização em tempo real.
+    
+    \item \textbf{Publicação Cloud:} Migração do dashboard para ambiente cloud (AWS, Azure, GCP), permitindo acesso remoto seguro e partilha com stakeholders externos.
+    
+    \item \textbf{API REST:} Disponibilização de endpoints API para integração com sistemas externos e automatização de relatórios.
+\end{itemize}
+
+%==============================================================================
+\section{Conclusão}
+%==============================================================================
+
+O presente projeto constitui um exercício académico que demonstra o potencial disruptivo de um sistema integrado de inteligência empresarial aplicado à análise financeira. Embora a implementação atual represente uma prova de conceito funcional, a visão subjacente a este trabalho transcende significativamente o âmbito académico, perspetivando a construção de uma plataforma capaz de transformar radicalmente a forma como investidores de retalho acedem e interpretam informação financeira.
+
+O mercado financeiro contemporâneo caracteriza-se por uma assimetria informacional profunda e estrutural entre investidores institucionais e investidores individuais. Enquanto os primeiros dispõem de acesso a terminais proprietários como o Bloomberg --- cujos custos de subscrição ultrapassam tipicamente os vinte mil euros anuais --- os segundos veem-se relegados a fontes de informação fragmentadas, dispersas por múltiplas plataformas, frequentemente desatualizadas e de difícil interpretação para não especialistas. Esta disparidade não constitui apenas uma inconveniência; representa uma barreira estrutural à participação informada e equitativa nos mercados de capitais, perpetuando um sistema onde a qualidade da informação disponível é diretamente proporcional ao capital detido.
+
+A arquitetura \textit{Medallion} implementada neste projeto não foi escolhida por acaso. Esta abordagem, amplamente adotada em contextos de \textit{Data Engineering} de larga escala, constitui precisamente a fundação técnica necessária para uma escalabilidade transformadora. A transposição deste sistema para uma infraestrutura de \textit{Data Lakehouse}, idealmente suportada por plataformas como o Databricks, permitiria superar as limitações inerentes ao processamento em \textit{batch} e às restrições de \textit{rate limiting} das APIs públicas. Neste cenário evolutivo, a ingestão de dados passaria a operar em regime de \textit{streaming} contínuo, assegurando que as camadas Bronze, Silver e Gold reflitam o estado do mercado em tempo real, com latências medidas em segundos e não em horas ou dias. O formato Delta Lake garantiria simultaneamente a integridade transacional através de propriedades ACID, mesmo em ambientes massivamente distribuídos, e a capacidade de \textit{time travel} para análises históricas e auditoria retrospetiva de decisões de investimento.
+
+A visão que aqui se articula é a de uma plataforma que congregue a profundidade analítica de soluções institucionais com uma acessibilidade sem precedentes, tanto em termos de usabilidade como de custo. Imagine-se um sistema capaz de processar simultaneamente dezenas de milhares de ativos financeiros --- ações, obrigações, ETFs, derivados, criptomoedas --- provenientes de múltiplas bolsas e geografias, apresentando a informação de forma contextualizada, intuitiva e acionável. Um sistema onde o investidor individual não necessite de formação especializada em finanças para compreender se uma empresa representa uma oportunidade de investimento sólida ou um risco a evitar. Um sistema que traduza a complexidade dos rácios financeiros, das tendências macroeconómicas e das dinâmicas setoriais em linguagem clara, acompanhada de visualizações interativas que permitam explorar os dados segundo múltiplas perspetivas.
+
+A proposta de valor diferenciadora residira na conjugação de três vetores fundamentais: velocidade, acessibilidade e inteligência. A velocidade materializa-se na capacidade de \textit{streaming} em tempo real, eliminando a vantagem informacional que os investidores institucionais tradicionalmente detêm. A acessibilidade concretiza-se numa interface desenhada para utilizadores não técnicos, com explicações contextuais, tutoriais integrados e uma arquitetura de informação que privilegie a clareza sobre a exaustividade. A inteligência incorpora-se através de algoritmos de análise automatizada --- como o \textit{Health Score} aqui desenvolvido --- complementados por técnicas de processamento de linguagem natural para análise de sentimento, deteção de anomalias através de aprendizagem automática e, eventualmente, modelos preditivos que auxiliem na antecipação de tendências.
+
+Esta democratização da inteligência financeira não constitui apenas uma oportunidade de negócio; representa um imperativo de equidade no acesso aos mercados de capitais. Num contexto onde a literacia financeira permanece deficitária em largas faixas da população, e onde as decisões de investimento podem determinar a segurança financeira de famílias inteiras, disponibilizar ferramentas de análise sofisticadas a um custo marginal assume uma dimensão quase ética. O sistema aqui desenvolvido demonstra que tal é tecnicamente exequível; a arquitetura está validada, os algoritmos funcionam, a interface é utilizável. O que separa esta prova de conceito de uma plataforma transformadora é essencialmente uma questão de escala, infraestrutura e investimento continuado.
+
+Em conclusão, o presente trabalho representa simultaneamente um fim e um princípio. Como exercício académico, cumpre os objetivos propostos ao implementar um sistema funcional de análise de saúde financeira baseado na arquitetura \textit{Medallion}, demonstrando competências em engenharia de dados, desenvolvimento de algoritmos de \textit{scoring} e criação de interfaces de \textit{Self-Service Business Intelligence}. Como visão de futuro, articula o potencial de uma plataforma que poderia verdadeiramente nivelar o campo de jogo entre investidores institucionais e individuais, oferecendo a estes últimos capacidades analíticas que até há pouco eram privilégio exclusivo de \textit{hedge funds} e bancos de investimento. A tecnologia existe, a arquitetura está desenhada, os dados estão disponíveis. O desafio que permanece é o de transformar esta prova de conceito numa realidade que sirva milhões de investidores de retalho em todo o mundo, democratizando verdadeiramente o acesso à inteligência financeira de qualidade.
+
+%==============================================================================
+% REFERÊNCIAS BIBLIOGRÁFICAS
+%==============================================================================
+\newpage
+\addcontentsline{toc}{section}{Referências Bibliográficas}
+\renewcommand{\refname}{Referências Bibliográficas}
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

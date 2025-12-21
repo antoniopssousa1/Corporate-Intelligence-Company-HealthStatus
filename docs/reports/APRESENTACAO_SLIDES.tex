@@ -1,0 +1,789 @@
+% Apresentação em Slides - Inteligência Empresarial
+% Dashboard de Saúde Financeira de Empresas Tecnológicas
+
+\documentclass[10pt]{beamer}
+
+% Tema e configuração
+\usetheme{Madrid}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+
+% Pacotes
+\usepackage[utf8]{inputenc}
+\usepackage[portuguese]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{hyperref}
+
+% Configuração de cores
+\definecolor{darkblue}{RGB}{30,58,95}
+\definecolor{lightblue}{RGB}{103,137,177}
+\definecolor{green}{RGB}{56,171,63}
+\definecolor{red}{RGB}{235,87,87}
+\definecolor{yellow}{RGB}{242,201,76}
+
+% Configuração de código
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    language=Python
+}
+
+% Informações do título
+\title[Dashboard Saúde Financeira]{Sistema de Análise de Saúde Financeira}
+\subtitle{Dashboard Interativo para Empresas Tecnológicas}
+\author{António Sousa}
+\institute{Faculdade de Economia da Universidade de Coimbra}
+\date{\today}
+
+\begin{document}
+
+% ========== SLIDE 1: TÍTULO ==========
+\begin{frame}
+\titlepage
+\end{frame}
+
+% ========== SLIDE 2: AGENDA ==========
+\begin{frame}{Agenda}
+\tableofcontents
+\end{frame}
+
+% ========== SECÇÃO 1: INTRODUÇÃO ==========
+\section{Apresentação do Projeto}
+
+\begin{frame}{Contexto e Problema}
+\begin{block}{Problema Identificado}
+\begin{itemize}
+    \item Dificuldade em avaliar rapidamente a saúde financeira de empresas
+    \item Dados financeiros dispersos e difíceis de interpretar
+    \item Falta de ferramentas intuitivas para análise comparativa
+    \item Necessidade de métricas padronizadas e automatizadas
+\end{itemize}
+\end{block}
+
+\vspace{0.5cm}
+
+\begin{block}{Objetivo do Projeto}
+Desenvolver um \textbf{sistema automatizado} que:
+\begin{itemize}
+    \item Extrai dados financeiros de fontes públicas (Yahoo Finance)
+    \item Calcula indicadores-chave de performance (KPI)
+    \item Apresenta análises visuais através de dashboard interativo
+    \item Permite decisões informadas sobre saúde empresarial
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Empresas Analisadas}
+\begin{block}{Top 10 Empresas Tecnológicas}
+\begin{columns}[T]
+\begin{column}{0.5\textwidth}
+\begin{itemize}
+    \item \textbf{AAPL} - Apple Inc.
+    \item \textbf{MSFT} - Microsoft Corporation
+    \item \textbf{GOOGL} - Alphabet Inc.
+    \item \textbf{AMZN} - Amazon.com Inc.
+    \item \textbf{NVDA} - NVIDIA Corporation
+\end{itemize}
+\end{column}
+\begin{column}{0.5\textwidth}
+\begin{itemize}
+    \item \textbf{META} - Meta Platforms Inc.
+    \item \textbf{TSLA} - Tesla Inc.
+    \item \textbf{AVGO} - Broadcom Inc.
+    \item \textbf{ASML} - ASML Holding N.V.
+    \item \textbf{NFLX} - Netflix Inc.
+\end{itemize}
+\end{column}
+\end{columns}
+\end{block}
+
+\vspace{0.3cm}
+
+\begin{alertblock}{Setor}
+Todas as empresas pertencem ao setor \textbf{Technology}, permitindo comparações diretas.
+\end{alertblock}
+\end{frame}
+
+% ========== SECÇÃO 2: ARQUITETURA ==========
+\section{Arquitetura do Sistema}
+
+\begin{frame}{Arquitetura Medallion (Bronze-Silver-Gold)}
+\begin{center}
+\begin{tikzpicture}[scale=0.8, every node/.style={transform shape}]
+    % Bronze Layer
+    \draw[fill=yellow!30, thick] (0,0) rectangle (3,2);
+    \node at (1.5,1.5) {\textbf{BRONZE}};
+    \node[align=center] at (1.5,0.8) {Dados Brutos\\Yahoo Finance};
+    \node[align=center, font=\tiny] at (1.5,0.2) {yfinance API};
+    
+    % Arrow 1
+    \draw[->, thick] (3.2,1) -- (4.8,1);
+    \node[above, font=\tiny] at (4,1.2) {Limpeza};
+    
+    % Silver Layer
+    \draw[fill=blue!20, thick] (5,0) rectangle (8,2);
+    \node at (6.5,1.5) {\textbf{SILVER}};
+    \node[align=center] at (6.5,0.8) {Dados\\Padronizados};
+    \node[align=center, font=\tiny] at (6.5,0.2) {PostgreSQL};
+    
+    % Arrow 2
+    \draw[->, thick] (8.2,1) -- (9.8,1);
+    \node[above, font=\tiny] at (9,1.2) {KPI};
+    
+    % Gold Layer
+    \draw[fill=green!30, thick] (10,0) rectangle (13,2);
+    \node at (11.5,1.5) {\textbf{GOLD}};
+    \node[align=center] at (11.5,0.8) {Analytics \&\\Métricas};
+    \node[align=center, font=\tiny] at (11.5,0.2) {Health Score};
+    
+    % Dashboard
+    \draw[fill=lightblue!30, thick] (5,-1.5) rectangle (8,-0.5);
+    \node at (6.5,-1) {\textbf{DASHBOARD}};
+    
+    \draw[->, thick] (11.5,-0.2) -- (11.5,-1) -- (8,-1);
+\end{tikzpicture}
+\end{center}
+
+\begin{block}{Camadas do Pipeline}
+\begin{itemize}
+    \item \textbf{Bronze}: Extração de dados brutos via API yfinance
+    \item \textbf{Silver}: Transformação e normalização dos dados
+    \item \textbf{Gold}: Cálculo de KPIs e métricas de saúde financeira
+    \item \textbf{Dashboard}: Visualização interativa (Streamlit)
+\end{itemize}
+\end{block}
+\end{frame}
+
+% ========== SECÇÃO 3: KPI ==========
+\section{Indicadores de Performance (KPI)}
+
+\begin{frame}{KPIs - Liquidez}
+\begin{block}{Indicadores de Liquidez}
+Medem a capacidade da empresa pagar obrigações de curto prazo.
+\end{block}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Indicador} & \textbf{Fórmula} & \textbf{Benchmark} \\
+\midrule
+Current Ratio & $\frac{\text{Ativos Correntes}}{\text{Passivos Correntes}}$ & $\geq 1.5$ \\[0.3cm]
+Quick Ratio & $\frac{\text{Ativos Líquidos}}{\text{Passivos Correntes}}$ & $\geq 1.0$ \\[0.3cm]
+Cash Ratio & $\frac{\text{Caixa}}{\text{Passivos Correntes}}$ & $\geq 0.25$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{alertblock}{Interpretação}
+\begin{itemize}
+    \item \textcolor{green}{\textbf{Alto}}: Empresa tem capacidade de pagar dívidas de curto prazo
+    \item \textcolor{red}{\textbf{Baixo}}: Risco de insolvência no curto prazo
+\end{itemize}
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{KPIs - Rentabilidade}
+\begin{block}{Indicadores de Rentabilidade}
+Avaliam a capacidade da empresa gerar lucro.
+\end{block}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Indicador} & \textbf{Fórmula} & \textbf{Benchmark} \\
+\midrule
+Gross Margin & $\frac{\text{Lucro Bruto}}{\text{Receita}}$ & $\geq 30\%$ \\[0.3cm]
+Net Margin & $\frac{\text{Lucro Líquido}}{\text{Receita}}$ & $\geq 10\%$ \\[0.3cm]
+ROE & $\frac{\text{Lucro Líquido}}{\text{Equity}}$ & $\geq 15\%$ \\[0.3cm]
+ROA & $\frac{\text{Lucro Líquido}}{\text{Ativos}}$ & $\geq 5\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{alertblock}{Interpretação}
+Margens elevadas indicam \textbf{forte poder de precificação} e controlo de custos.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{KPIs - Alavancagem}
+\begin{block}{Indicadores de Alavancagem}
+Medem o nível de endividamento da empresa.
+\end{block}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Indicador} & \textbf{Fórmula} & \textbf{Benchmark} \\
+\midrule
+Debt-to-Equity & $\frac{\text{Dívida Total}}{\text{Equity}}$ & $\leq 1.0$ \\[0.3cm]
+Debt-to-Assets & $\frac{\text{Dívida Total}}{\text{Ativos}}$ & $\leq 50\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{alertblock}{Interpretação}
+\begin{itemize}
+    \item \textcolor{green}{\textbf{Baixo}}: Estrutura de capital conservadora, menor risco
+    \item \textcolor{red}{\textbf{Alto}}: Alta alavancagem, risco financeiro elevado
+\end{itemize}
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{KPIs - Cash Flow}
+\begin{block}{Indicadores de Fluxo de Caixa}
+Avaliam a geração de caixa operacional.
+\end{block}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Indicador} & \textbf{Fórmula} & \textbf{Benchmark} \\
+\midrule
+OCF Ratio & $\frac{\text{CF Operacional}}{\text{Passivos Correntes}}$ & $\geq 1.0$ \\[0.3cm]
+FCF Margin & $\frac{\text{Free Cash Flow}}{\text{Receita}}$ & $\geq 15\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{alertblock}{Importância}
+Free Cash Flow é crucial - representa dinheiro \textbf{disponível} para:
+\begin{itemize}
+    \item Dividendos
+    \item Recompra de ações
+    \item Investimentos
+    \item Redução de dívida
+\end{itemize}
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Health Score (0-100)}
+\begin{block}{Cálculo do Health Score}
+Score composto baseado em 4 dimensões:
+\end{block}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lc}
+\toprule
+\textbf{Dimensão} & \textbf{Peso} \\
+\midrule
+Liquidez & 20 pontos \\
+Rentabilidade & 30 pontos \\
+Alavancagem & 25 pontos \\
+Cash Flow & 25 pontos \\
+\midrule
+\textbf{Total} & \textbf{100 pontos} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{block}{Classificação}
+\begin{itemize}
+    \item \textcolor{green}{\textbf{80-100}} - Excellent: Posição financeira forte
+    \item \textcolor{green!70!black}{\textbf{65-79}} - Good: Finanças saudáveis
+    \item \textcolor{yellow!80!black}{\textbf{50-64}} - Fair: Algumas áreas precisam atenção
+    \item \textcolor{orange}{\textbf{35-49}} - Concerning: Múltiplos sinais de alerta
+    \item \textcolor{red}{\textbf{0-34}} - Poor: Dificuldades financeiras sérias
+\end{itemize}
+\end{block}
+\end{frame}
+
+% ========== SECÇÃO 4: MODELO DE DADOS ==========
+\section{Modelo de Dados}
+
+\begin{frame}{Modelo Entidade-Relacionamento (ER)}
+\begin{center}
+\begin{tikzpicture}[scale=0.7, every node/.style={transform shape}]
+    % Entities
+    \draw[thick, fill=lightblue!30] (0,4) rectangle (3,5.5);
+    \node at (1.5,5) {\textbf{COMPANY}};
+    \node[align=left, font=\tiny] at (1.5,4.4) {ticker (PK)\\company\_name\\sector};
+    
+    \draw[thick, fill=yellow!30] (6,6) rectangle (9,7.5);
+    \node at (7.5,7) {\textbf{INCOME\_STMT}};
+    \node[align=left, font=\tiny] at (7.5,6.4) {id (PK)\\ticker (FK)\\fiscal\_year\\revenue\\net\_income};
+    
+    \draw[thick, fill=yellow!30] (6,3.5) rectangle (9,5);
+    \node at (7.5,4.5) {\textbf{BALANCE\_SHEET}};
+    \node[align=left, font=\tiny] at (7.5,3.9) {id (PK)\\ticker (FK)\\fiscal\_year\\total\_assets\\equity};
+    
+    \draw[thick, fill=yellow!30] (6,1) rectangle (9,2.5);
+    \node at (7.5,2) {\textbf{CASH\_FLOW}};
+    \node[align=left, font=\tiny] at (7.5,1.4) {id (PK)\\ticker (FK)\\fiscal\_year\\operating\_cf\\fcf};
+    
+    \draw[thick, fill=green!30] (11.5,3.5) rectangle (14.5,5);
+    \node at (13,4.5) {\textbf{HEALTH}};
+    \node[align=left, font=\tiny] at (13,3.9) {id (PK)\\ticker (FK)\\fiscal\_year\\health\_score\\status};
+    
+    % Relationships
+    \draw[->, thick] (3,4.75) -- (6,6.5);
+    \draw[->, thick] (3,4.75) -- (6,4.25);
+    \draw[->, thick] (3,4.75) -- (6,1.75);
+    \draw[->, thick] (9,4.25) -- (11.5,4.25);
+    
+    \node[above, font=\tiny] at (4.5,5.8) {1:N};
+    \node[above, font=\tiny] at (4.5,4.5) {1:N};
+    \node[above, font=\tiny] at (4.5,3) {1:N};
+    \node[above, font=\tiny] at (10.2,4.5) {1:1};
+\end{tikzpicture}
+\end{center}
+
+\begin{alertblock}{Nota}
+Cada empresa (\textit{ticker}) possui múltiplos anos fiscais de dados financeiros.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Modelo Relacional - Tabelas Silver}
+\begin{block}{silver\_companies}
+\texttt{ticker (PK), company\_name, sector}
+\end{block}
+
+\begin{block}{silver\_income\_statement}
+\texttt{id (PK), ticker (FK), fiscal\_year, revenue, cost\_of\_revenue,\\
+gross\_profit, operating\_income, net\_income, ebitda, eps\_basic}
+\end{block}
+
+\begin{block}{silver\_balance\_sheet}
+\texttt{id (PK), ticker (FK), fiscal\_year, total\_assets, total\_liabilities,\\
+total\_equity, current\_assets, current\_liabilities, cash\_and\_equivalents,\\
+total\_debt}
+\end{block}
+
+\begin{block}{silver\_cash\_flow}
+\texttt{id (PK), ticker (FK), fiscal\_year, operating\_cash\_flow,\\
+investing\_cash\_flow, financing\_cash\_flow, free\_cash\_flow,\\
+capital\_expenditures}
+\end{block}
+\end{frame}
+
+\begin{frame}{Modelo Relacional - Tabelas Gold}
+\begin{block}{gold\_financial\_health}
+\texttt{id (PK), ticker (FK), company\_name, fiscal\_year,\\
+current\_ratio, quick\_ratio, cash\_ratio,\\
+gross\_margin, operating\_margin, net\_margin, roe, roa,\\
+debt\_to\_equity, debt\_to\_assets,\\
+operating\_cash\_flow\_ratio, free\_cash\_flow\_margin,\\
+health\_score, health\_status, analysis\_notes}
+\end{block}
+
+\begin{block}{gold\_kpi\_dashboard}
+\texttt{id (PK), ticker (FK), company\_name, fiscal\_year,\\
+revenue, revenue\_growth, net\_income, profit\_growth,\\
+total\_assets, total\_debt, free\_cash\_flow,\\
+current\_ratio, debt\_to\_equity, net\_margin, roe,\\
+health\_score, health\_status,\\
+revenue\_rank, profit\_rank, health\_rank}
+\end{block}
+\end{frame}
+
+\begin{frame}{Tecnologias Utilizadas}
+\begin{columns}[T]
+\begin{column}{0.5\textwidth}
+\begin{block}{Backend \& Database}
+\begin{itemize}
+    \item \textbf{Python 3.12}
+    \item \textbf{PostgreSQL} - Base de dados relacional
+    \item \textbf{yfinance} - API Yahoo Finance
+    \item \textbf{pandas} - Manipulação de dados
+    \item \textbf{psycopg2} - Connector PostgreSQL
+\end{itemize}
+\end{block}
+\end{column}
+
+\begin{column}{0.5\textwidth}
+\begin{block}{Frontend \& Visualização}
+\begin{itemize}
+    \item \textbf{Streamlit} - Dashboard web
+    \item \textbf{Plotly} - Gráficos interativos
+    \item \textbf{Excel} - Exports para BI
+    \item \textbf{Power BI} - Análise avançada
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+
+\vspace{0.5cm}
+
+\begin{alertblock}{Estrutura do Projeto}
+\begin{itemize}
+    \item \texttt{src/data\_pipeline/} - Código do pipeline ETL
+    \item \texttt{data/} - Dados (bronze/silver/gold/output)
+    \item \texttt{docs/} - Documentação e diagramas
+\end{itemize}
+\end{alertblock}
+\end{frame}
+
+% ========== SECÇÃO 5: DASHBOARD ==========
+\section{Dashboard Interativo}
+
+\begin{frame}{Dashboard - Visão Geral}
+\begin{block}{Funcionalidades Principais}
+\begin{itemize}
+    \item \textbf{Seleção de Empresa}: Dropdown com 10 empresas tech
+    \item \textbf{Health Score Gauge}: Visualização do score 0-100
+    \item \textbf{Métricas Principais}: Revenue, Net Income, Assets
+    \item \textbf{Análise Detalhada}: Por categoria (Liquidez, Rentabilidade, etc.)
+    \item \textbf{Tendências Históricas}: Evolução ao longo dos anos
+    \item \textbf{Rankings Comparativos}: Comparação entre empresas
+\end{itemize}
+\end{block}
+
+\begin{alertblock}{Acesso}
+\textbf{URL}: \texttt{http://localhost:8501}\\
+\textbf{Comando}: \texttt{streamlit run src/data\_pipeline/dashboard.py}
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Dashboard - Ecrã Principal}
+\begin{center}
+\begin{tikzpicture}[scale=0.55, every node/.style={transform shape}]
+    % Header
+    \draw[thick, fill=darkblue!20] (0,9) rectangle (14,10);
+    \node at (7,9.5) {\Large\textbf{Corporate Financial Health Dashboard}};
+    
+    % Sidebar
+    \draw[thick, fill=gray!20] (0,0) rectangle (2.5,8.5);
+    \node[rotate=90] at (0.3,4.5) {\textbf{SIDEBAR}};
+    \node[align=center, font=\tiny] at (1.5,7) {Select\\Company};
+    \draw[fill=white] (0.5,5.5) rectangle (2.3,6.5);
+    \node[font=\tiny] at (1.4,6) {AAPL - Apple};
+    
+    % Main Content
+    \draw[thick] (3,0) rectangle (14,8.5);
+    
+    % Status Card
+    \draw[thick, fill=green!30] (3.5,7) rectangle (6.5,8);
+    \node[font=\small] at (5,7.7) {\textbf{Excellent}};
+    \node[font=\tiny] at (5,7.3) {Health Status};
+    
+    % Metrics
+    \draw[thick, fill=blue!10] (7,7) rectangle (9.5,8);
+    \node[font=\tiny] at (8.25,7.7) {Revenue: \$394B};
+    \node[font=\tiny] at (8.25,7.3) {Growth: +2.8\%};
+    
+    \draw[thick, fill=blue!10] (10,7) rectangle (12.5,8);
+    \node[font=\tiny] at (11.25,7.7) {Net Income: \$97B};
+    \node[font=\tiny] at (11.25,7.3) {Growth: +3.2\%};
+    
+    % Gauge
+    \draw[thick] (3.5,4.5) rectangle (7,6.5);
+    \node[font=\tiny] at (5.25,6.2) {\textbf{Health Score}};
+    \draw[thick] (5.25,5.5) circle (0.8);
+    \node at (5.25,5.5) {\Large\textbf{85}};
+    
+    % Ratios Chart
+    \draw[thick] (7.5,4.5) rectangle (13.5,6.5);
+    \node[font=\tiny] at (10.5,6.2) {\textbf{Key Financial Ratios}};
+    \foreach \x in {8,9.5,11,12.5} {
+        \draw[thick, fill=green!40] (\x,5) rectangle (\x+0.5,5.8);
+    }
+    
+    % Detailed Analysis
+    \draw[thick] (3.5,0.5) rectangle (13.5,4);
+    \node[font=\small] at (8.5,3.7) {\textbf{Detailed Analysis}};
+    \node[align=left, font=\tiny] at (5,3) {Liquidity};
+    \node[align=left, font=\tiny] at (8.5,3) {Profitability};
+    \node[align=left, font=\tiny] at (12,3) {Leverage};
+    
+    \draw[thick, fill=green!20] (3.8,1.5) rectangle (6.5,2.5);
+    \node[font=\tiny] at (5.15,2.2) {Current Ratio: 1.05};
+    \node[font=\tiny] at (5.15,1.8) {Adequate liquidity};
+    
+    \draw[thick, fill=green!20] (7.2,1.5) rectangle (9.9,2.5);
+    \node[font=\tiny] at (8.55,2.2) {Net Margin: 24.6\%};
+    \node[font=\tiny] at (8.55,1.8) {Excellent profitability};
+    
+    \draw[thick, fill=green!20] (10.6,1.5) rectangle (13.3,2.5);
+    \node[font=\tiny] at (11.95,2.2) {D/E: 2.18};
+    \node[font=\tiny] at (11.95,1.8) {Moderate leverage};
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+\begin{frame}{Dashboard - Análise Detalhada}
+\begin{block}{Análise por Categoria}
+Cada métrica apresenta:
+\begin{itemize}
+    \item \textbf{Valor atual} e comparação com benchmark
+    \item \textbf{Código de cores} (verde/amarelo/vermelho)
+    \item \textbf{Interpretação textual} do resultado
+    \item \textbf{Recomendações} baseadas nos valores
+\end{itemize}
+\end{block}
+
+\begin{exampleblock}{Exemplo - Liquidez}
+\begin{itemize}
+    \item \textcolor{green}{\textbf{Current Ratio: 1.05}} - ``Adequate, but limited safety margin''
+    \item \textcolor{green}{\textbf{Cash Ratio: 0.26}} - ``Adequate cash reserves''
+    \item \textcolor{orange}{\textbf{Quick Ratio: 0.81}} - ``May need to liquidate inventory''
+\end{itemize}
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Dashboard - Tendências Históricas}
+\begin{center}
+\begin{tikzpicture}[scale=0.7, every node/.style={transform shape}]
+    % Revenue Trend Chart
+    \draw[thick] (0,0) rectangle (6,4);
+    \node[font=\small] at (3,3.7) {\textbf{Revenue Over Time}};
+    \draw[->] (0.5,0.5) -- (5.5,0.5);
+    \draw[->] (0.5,0.5) -- (0.5,3.5);
+    \draw[thick, blue] (0.8,1) -- (1.5,1.5) -- (2.5,2) -- (3.5,2.3) -- (4.5,2.8) -- (5.2,3);
+    \foreach \x/\y in {0.8/1, 1.5/1.5, 2.5/2, 3.5/2.3, 4.5/2.8, 5.2/3} {
+        \fill[blue] (\x,\y) circle (0.08);
+    }
+    \node[font=\tiny] at (3,0.2) {Fiscal Year};
+    \node[rotate=90, font=\tiny] at (0.2,2) {Revenue};
+    
+    % Health Score Trend Chart
+    \draw[thick] (7,0) rectangle (13,4);
+    \node[font=\small] at (10,3.7) {\textbf{Health Score Evolution}};
+    \draw[->] (7.5,0.5) -- (12.5,0.5);
+    \draw[->] (7.5,0.5) -- (7.5,3.5);
+    \draw[thick, green] (7.8,2.5) -- (8.5,2.7) -- (9.5,2.8) -- (10.5,2.9) -- (11.5,3) -- (12.2,3.1);
+    \foreach \x/\y in {7.8/2.5, 8.5/2.7, 9.5/2.8, 10.5/2.9, 11.5/3, 12.2/3.1} {
+        \fill[green] (\x,\y) circle (0.08);
+    }
+    \node[font=\tiny] at (10,0.2) {Fiscal Year};
+    \node[rotate=90, font=\tiny] at (7.2,2) {Score};
+\end{tikzpicture}
+\end{center}
+
+\begin{alertblock}{Funcionalidades}
+\begin{itemize}
+    \item Gráficos interativos (hover para detalhes)
+    \item Múltiplas métricas em tabs separados
+    \item Dados de até 5 anos fiscais
+\end{itemize}
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Dashboard - Rankings}
+\begin{center}
+\begin{tikzpicture}[scale=0.65, every node/.style={transform shape}]
+    % Revenue Ranking
+    \draw[thick] (0,0) rectangle (4.5,5);
+    \node[font=\small] at (2.25,4.7) {\textbf{By Revenue}};
+    
+    \foreach \y/\ticker/\val in {4/AAPL/\$394B, 3.4/MSFT/\$245B, 2.8/GOOGL/\$307B, 2.2/AMZN/\$575B, 1.6/NVDA/\$61B} {
+        \draw[fill=blue!30] (0.3,\y-0.25) rectangle (4.2,\y-0.05);
+        \node[font=\tiny, left] at (0.5,\y-0.15) {\ticker};
+        \node[font=\tiny, right] at (4,\y-0.15) {\val};
+    }
+    
+    % Health Ranking
+    \draw[thick] (5,0) rectangle (9.5,5);
+    \node[font=\small] at (7.25,4.7) {\textbf{By Health Score}};
+    
+    \foreach \y/\ticker/\val in {4/NVDA/92, 3.4/AAPL/85, 2.8/MSFT/82, 2.2/GOOGL/78, 1.6/META/75} {
+        \draw[fill=green!30] (5.3,\y-0.25) rectangle (9.2,\y-0.05);
+        \node[font=\tiny, left] at (5.5,\y-0.15) {\ticker};
+        \node[font=\tiny, right] at (9,\y-0.15) {\val};
+    }
+    
+    % Net Income Ranking
+    \draw[thick] (10,0) rectangle (14.5,5);
+    \node[font=\small] at (12.25,4.7) {\textbf{By Net Income}};
+    
+    \foreach \y/\ticker/\val in {4/AAPL/\$97B, 3.4/MSFT/\$72B, 2.8/GOOGL/\$74B, 2.2/NVDA/\$30B, 1.6/META/\$39B} {
+        \draw[fill=yellow!40] (10.3,\y-0.25) rectangle (14.2,\y-0.05);
+        \node[font=\tiny, left] at (10.5,\y-0.15) {\ticker};
+        \node[font=\tiny, right] at (14,\y-0.15) {\val};
+    }
+\end{tikzpicture}
+\end{center}
+
+\begin{block}{Rankings Automáticos}
+Sistema calcula ranks automaticamente para o ano mais recente disponível.
+\end{block}
+\end{frame}
+
+% ========== SECÇÃO 6: RESULTADOS ==========
+\section{Resultados e Conclusões}
+
+\begin{frame}{Resultados Obtidos}
+\begin{block}{Pipeline ETL Completo}
+\begin{itemize}
+    \item \textbf{10 empresas} monitorizadas
+    \item \textbf{5 anos} de dados históricos por empresa
+    \item \textbf{15+ KPIs} calculados automaticamente
+    \item \textbf{Health Score} composto para cada empresa/ano
+\end{itemize}
+\end{block}
+
+\begin{block}{Dashboard Funcional}
+\begin{itemize}
+    \item Interface \textbf{intuitiva} para utilizadores sem conhecimento técnico
+    \item Análises \textbf{visuais} e textuais
+    \item \textbf{Comparações} entre empresas
+    \item \textbf{Tendências} históricas
+\end{itemize}
+\end{block}
+
+\begin{alertblock}{Exemplo Real - Apple (AAPL)}
+\begin{itemize}
+    \item Health Score: \textbf{85/100} (Excellent)
+    \item Net Margin: \textbf{24.6\%} (excelente rentabilidade)
+    \item Current Ratio: \textbf{1.05} (liquidez adequada mas justa)
+    \item Debt/Equity: \textbf{2.18} (alavancagem moderada)
+\end{itemize}
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Insights Principais}
+\begin{block}{Padrões Identificados}
+\begin{itemize}
+    \item Empresas tech tendem a ter \textbf{margens elevadas} (20-30\%)
+    \item \textbf{NVIDIA} lidera em health score (92) devido a forte crescimento
+    \item \textbf{Tesla} apresenta maior volatilidade nos indicadores
+    \item Empresas consolidadas (Apple, Microsoft) têm \textbf{estabilidade} superior
+\end{itemize}
+\end{block}
+
+\begin{exampleblock}{Value para Decisões}
+\begin{itemize}
+    \item \textbf{Investidores}: Identificar empresas financeiramente saudáveis
+    \item \textbf{Analistas}: Comparar performance relativa
+    \item \textbf{Gestão}: Benchmark com concorrentes
+    \item \textbf{Stakeholders}: Monitorizar saúde financeira ao longo do tempo
+\end{itemize}
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Limitações e Trabalho Futuro}
+\begin{alertblock}{Limitações Atuais}
+\begin{itemize}
+    \item Dados dependem da \textbf{API Yahoo Finance} (pode ter delays)
+    \item Análise limitada ao \textbf{setor tecnológico}
+    \item Health Score é um \textbf{modelo simplificado}
+    \item Sem análise de \textbf{eventos específicos} (M\&A, reestruturações)
+\end{itemize}
+\end{alertblock}
+
+\begin{block}{Melhorias Futuras}
+\begin{itemize}
+    \item Expandir para \textbf{múltiplos setores}
+    \item Adicionar \textbf{análise de sentimento} (notícias, redes sociais)
+    \item Implementar \textbf{machine learning} para previsões
+    \item Integrar dados de \textbf{mercado} (cotações em tempo real)
+    \item Criar \textbf{alertas} automáticos para mudanças críticas
+    \item Dashboard \textbf{mobile-responsive}
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Conclusões}
+\begin{block}{Objetivos Alcançados}
+\begin{itemize}
+    \item ✅ Sistema automatizado de extração e transformação de dados
+    \item ✅ Cálculo de KPIs financeiros padronizados
+    \item ✅ Dashboard interativo e user-friendly
+    \item ✅ Análises comparativas entre empresas
+    \item ✅ Documentação completa do projeto
+\end{itemize}
+\end{block}
+
+\begin{exampleblock}{Contribuições}
+\begin{itemize}
+    \item \textbf{Arquitetura Medallion} aplicada a dados financeiros
+    \item \textbf{Health Score} composto para avaliação rápida
+    \item \textbf{Dashboard open-source} replicável
+    \item \textbf{Pipeline escalável} para adicionar mais empresas/métricas
+\end{itemize}
+\end{exampleblock}
+
+\begin{alertblock}{Impacto}
+Ferramenta permite \textbf{democratizar análise financeira}, tornando-a acessível a utilizadores sem formação em finanças ou programação.
+\end{alertblock}
+\end{frame}
+
+% ========== SLIDE FINAL ==========
+\begin{frame}[plain]
+\begin{center}
+\vspace{2cm}
+{\Huge\textbf{Obrigado!}}
+
+\vspace{1cm}
+
+{\Large Dashboard de Saúde Financeira}
+
+{\large Sistema de Análise para Empresas Tecnológicas}
+
+\vspace{1.5cm}
+
+\begin{tabular}{ll}
+\textbf{Autor:} & António Sousa \\
+\textbf{Email:} & aportosousa@gmail.com \\
+\textbf{Repo:} & github.com/antoniopssousa1/Corporate-Intelligence-Company-HealthStatus \\
+\textbf{Dashboard:} & \texttt{streamlit run src/data\_pipeline/dashboard.py}
+\end{tabular}
+
+\vspace{1cm}
+
+{\small FEUC - Faculdade de Economia da Universidade de Coimbra}
+
+{\small Mestrado em Economia - Inteligência Empresarial}
+\end{center}
+\end{frame}
+
+% Backup slides (opcional)
+\appendix
+
+\begin{frame}{Backup: Estrutura do Código}
+\begin{block}{src/data\_pipeline/}
+\begin{itemize}
+    \item \texttt{config.py} - Configurações (DB, empresas, paths)
+    \item \texttt{database.py} - Schema e funções DB
+    \item \texttt{extract\_bronze.py} - Extração via yfinance
+    \item \texttt{transform\_silver.py} - Normalização de dados
+    \item \texttt{create\_gold.py} - Cálculo de KPIs
+    \item \texttt{export\_excel.py} - Exports para Excel/BI
+    \item \texttt{run\_pipeline.py} - Orquestração completa
+    \item \texttt{dashboard.py} - Dashboard Streamlit
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Backup: Exemplo de Código}
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\tiny]
+def calculate_health_score(ratios):
+    """Calculate composite financial health score (0-100)"""
+    score = 0
+    max_score = 0
+    
+    # Liquidity (20 points)
+    if ratios.get('current_ratio'):
+        max_score += 10
+        cr = ratios['current_ratio']
+        if cr >= 2.0: score += 10
+        elif cr >= 1.5: score += 8
+        elif cr >= 1.0: score += 5
+    
+    # Profitability (30 points)
+    if ratios.get('net_margin'):
+        max_score += 15
+        nm = ratios['net_margin']
+        if nm >= 0.20: score += 15
+        elif nm >= 0.10: score += 12
+    
+    # Normalize to 0-100
+    return round((score / max_score) * 100, 2)
+\end{lstlisting}
+\end{frame}
+
+\end{document}

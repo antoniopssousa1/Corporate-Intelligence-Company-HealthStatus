@@ -8,11 +8,11 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import os
 import sys
 
+# O que isto faz basicamente é permitir importar o config.py que está noutro ficheiro
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from config import DB_CONFIG
+from config import DB_CONFIG #importamos as tais configsda db
 
-def create_database_if_not_exists():
-    """Create the database if it doesn't exist"""
+def create_database_if_not_exists(): #Funcao para criar a db se nao existir
     conn = psycopg2.connect(
         host=DB_CONFIG['host'],
         port=DB_CONFIG['port'],
@@ -20,31 +20,30 @@ def create_database_if_not_exists():
         password=DB_CONFIG['password'],
         database='postgres'
     )
+    #todos estes parametros estao pre-definidos no config.py
+
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-    cursor = conn.cursor()
+    #o que faz esta linha é definir o isolation level para autocommit, ou seja, cada comando SQL é automaticamente confirmado sem necessidade de chamar explicitamente o commit. Isto é importante quando se está a criar uma base de dados, porque algumas operações (como CREATE DATABASE) não podem ser executadas dentro de uma transação.
+    cursor = conn.cursor() #criar um cursor para executar comandos SQL
     
-    # Check if database exists
-    cursor.execute("SELECT 1 FROM pg_database WHERE datname = %s", (DB_CONFIG['database'],))
-    if not cursor.fetchone():
+    # ver se a db existe, claro que existe foi acabada de criar mas é so para garantir
+    cursor.execute("SELECT 1 FROM pg_database WHERE datname = %s", (DB_CONFIG['database'],)) #o que isto faz é verificar se a base de dados com o nome especificado em DB_CONFIG['database'] já existe no servidor PostgreSQL. Ele faz isso consultando a tabela do sistema pg_database, que contém informações sobre todas as bases de dados no servidor.
+    if not cursor.fetchone(): #se nao existir cria a db basicamente
         cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(DB_CONFIG['database'])))
         print(f"Database '{DB_CONFIG['database']}' created successfully!")
     
     cursor.close()
     conn.close()
 
-def init_database():
-    """Initialize the PostgreSQL database with all required tables"""
-    # First ensure database exists
-    create_database_if_not_exists()
+def init_database(): #vamos iniciar a db com as tabelas necessarias
     
-    conn = psycopg2.connect(**DB_CONFIG)
-    cursor = conn.cursor()
+    create_database_if_not_exists() #chamar a funcao para criar 
     
-    # =====================================================
-    # BRONZE LAYER - Raw data as extracted from source
-    # =====================================================
+    conn = psycopg2.connect(**DB_CONFIG) #ligar à db ja criada os ** é para desempacotar o dicionario
+    cursor = conn.cursor() #ligar o cursor para executar comandos SQL
     
-    # Raw Income Statement
+
+    #bronze layer - raw data
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS bronze_income_statement (
             id SERIAL PRIMARY KEY,
@@ -86,10 +85,9 @@ def init_database():
         )
     ''')
     
-    # =====================================================
-    # SILVER LAYER - Cleaned and standardized data
-    # =====================================================
+    #ok em principio ja temos a bronze layer criada com as tabelas necessarias
     
+    #agora criamos as silver layer - cleaned and standardized data
     # Companies dimension
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS silver_companies (

@@ -5,12 +5,12 @@ This script processes raw data into structured, normalized tables
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))#adicionar o path src/data_pipeline ao sys.path para importar modulos locais
 
-from database import get_connection, init_database
-from config import TECH_COMPANIES
+from database import get_connection, init_database #importar funcoes para ligar à db e inicializar a db
+from config import TECH_COMPANIES#importar o dicionario das tech companies
 
-# Metric name mappings for standardization
+# Mapeamento de métricas brutas para colunas padronizadas na camada silver
 INCOME_METRICS = {
     'Revenue': 'revenue',
     'Total Revenue': 'revenue',
@@ -76,39 +76,39 @@ def transform_to_silver():
     conn = get_connection()
     cursor = conn.cursor()
     
-    # Clear existing silver data (except companies as it's a dimension)
-    cursor.execute("TRUNCATE TABLE silver_income_statement CASCADE")
-    cursor.execute("TRUNCATE TABLE silver_balance_sheet CASCADE")
-    cursor.execute("TRUNCATE TABLE silver_cash_flow CASCADE")
-    cursor.execute("TRUNCATE TABLE silver_companies CASCADE")
-    conn.commit()
+    # limpar dados existentes nas tabelas silver antes de inserir novos dados 
+    cursor.execute("TRUNCATE TABLE silver_income_statement CASCADE") #CASCADE para garantir que todas as tabelas dependentes também sejam limpas
+    cursor.execute("TRUNCATE TABLE silver_balance_sheet CASCADE") #CASCADE para garantir que todas as tabelas dependentes também sejam limpas
+    cursor.execute("TRUNCATE TABLE silver_cash_flow CASCADE") #CASCADE para garantir que todas as tabelas dependentes também sejam limpas
+    cursor.execute("TRUNCATE TABLE silver_companies CASCADE") #CASCADE para garantir que todas as tabelas dependentes também sejam limpas
+    conn.commit() #confirmar as alteracoes para a db
     
-    # Insert companies
+    # Criar dimensão de empresas
     print("\nCreating company dimension...")
-    for ticker, company_name in TECH_COMPANIES.items():
+    for ticker, company_name in TECH_COMPANIES.items(): #para cada ticker e nome da empresa no dicionario TECH_COMPANIES
         cursor.execute('''
             INSERT INTO silver_companies (ticker, company_name, sector)
             VALUES (%s, %s, %s)
             ON CONFLICT (ticker) DO UPDATE SET company_name = EXCLUDED.company_name
         ''', (ticker, company_name, 'Technology'))
     conn.commit()
+    #a ultima linha de sql serve para evitar duplicados, se ja existir o ticker atualiza o nome da empresa
     
     # Process each company
-    for ticker, company_name in TECH_COMPANIES.items():
+    for ticker, company_name in TECH_COMPANIES.items(): #para cada ticker e nome da empresa no dicionario TECH_COMPANIES
         print(f"\n[{ticker}] Processing {company_name}...")
         
-        # Get distinct years from bronze data
+        # Vai buscar anos distintos na tabela bronze para o ticker atual
         cursor.execute('''
             SELECT DISTINCT fiscal_year FROM bronze_income_statement 
             WHERE ticker = %s AND fiscal_year ~ '^[0-9]{4}$'
             ORDER BY fiscal_year DESC
             LIMIT 5
         ''', (ticker,))
-        years = [row[0] for row in cursor.fetchall()]
+        years = [row[0] for row in cursor.fetchall()] #lista de anos distintos
         
-        for year in years:
-            # Process Income Statement
-            income_data = {'ticker': ticker, 'fiscal_year': int(year)}
+        for year in years:#para cada ano distinto
+            income_data = {'ticker': ticker, 'fiscal_year': int(year)} #dicionario para guardar os dados do income statement
             cursor.execute('''
                 SELECT metric_name, metric_value FROM bronze_income_statement
                 WHERE ticker = %s AND fiscal_year = %s

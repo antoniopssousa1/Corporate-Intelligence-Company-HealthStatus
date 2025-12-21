@@ -29,7 +29,7 @@ def calculate_health_score(ratios):
     # Liquidity (20 points max)
     if ratios.get('current_ratio') is not None: #verificar se o ratio existe 
         max_score += 10 # adicionar 10 ao max score
-        cr = ratios['current_ratio'] #pegar o valor do current ratio
+        cr = ratios['current_ratio'] #pegar o valor do current ratio, cr significa current ratio
         if cr >= 2.0:
             score += 10
         elif cr >= 1.5:
