@@ -132,6 +132,8 @@ def format_percentage(num):
     """Format percentage for display"""
     if num is None:
         return "N/A"
+    if pd.isna(num):
+        return None
     return f"{num*100:.1f}%"
 
 
@@ -505,17 +507,21 @@ def main():
         """, unsafe_allow_html=True)
     
     with col2:
+        revenue_growth = latest_kpi['revenue_growth']
+        revenue_delta = format_percentage(revenue_growth) if revenue_growth and not pd.isna(revenue_growth) else None
         st.metric(
             "💰 Revenue",
             format_large_number(latest_kpi['revenue']),
-            format_percentage(latest_kpi['revenue_growth']) if latest_kpi['revenue_growth'] else None
+            revenue_delta
         )
     
     with col3:
+        profit_growth = latest_kpi['profit_growth']
+        profit_delta = format_percentage(profit_growth) if profit_growth and not pd.isna(profit_growth) else None
         st.metric(
             "📈 Net Income",
             format_large_number(latest_kpi['net_income']),
-            format_percentage(latest_kpi['profit_growth']) if latest_kpi['profit_growth'] else None
+            profit_delta
         )
     
     with col4:
@@ -543,16 +549,23 @@ def main():
     with col2:
         st.markdown("### 📊 Key Financial Ratios")
         
-        # Create ratio comparison chart
+        # Create ratio comparison chart with proper normalization
         ratio_cols = ['current_ratio', 'net_margin', 'roe', 'debt_to_equity']
         ratio_names = ['Current Ratio', 'Net Margin', 'ROE', 'Debt/Equity']
+        # Benchmarks for normalization (what 100% should represent)
+        ratio_benchmarks = {
+            'current_ratio': 3.0,  # A ratio of 3 = 100%
+            'net_margin': 0.5,     # 50% margin = 100%
+            'roe': 0.5,            # 50% ROE = 100%
+            'debt_to_equity': 3.0  # D/E of 3 = 100%
+        }
         
-        fig = make_subplots(rows=1, cols=4, subplot_titles=ratio_names)
-        
-        for i, (col, name) in enumerate(zip(ratio_cols, ratio_names), 1):
+        # Collect data for single bar chart
+        bar_data = []
+        for col, name in zip(ratio_cols, ratio_names):
             val = latest_health[col] if col in latest_health else None
-            if val is not None:
-                # Determine color
+            if val is not None and not pd.isna(val):
+                # Determine color based on thresholds
                 if col == 'debt_to_equity':
                     color = '#38ef7d' if val <= 1.0 else '#eb5757'
                 elif col == 'current_ratio':
@@ -560,14 +573,41 @@ def main():
                 else:
                     color = '#38ef7d' if val >= 0.1 else '#eb5757'
                 
-                fig.add_trace(
-                    go.Bar(x=[name], y=[val], marker_color=color, showlegend=False,
-                           text=[f"{val:.2f}"], textposition='outside'),
-                    row=1, col=i
-                )
+                # Normalize value to percentage of benchmark
+                benchmark = ratio_benchmarks[col]
+                normalized_val = min((val / benchmark) * 100, 100)  # Cap at 100%
+                
+                bar_data.append({
+                    'name': name,
+                    'value': normalized_val,
+                    'actual': val,
+                    'color': color
+                })
         
-        fig.update_layout(height=300, margin=dict(l=20, r=20, t=50, b=20))
-        st.plotly_chart(fig, use_container_width=True)
+        if bar_data:
+            fig = go.Figure()
+            for item in bar_data:
+                fig.add_trace(go.Bar(
+                    x=[item['name']], 
+                    y=[item['value']], 
+                    marker_color=item['color'], 
+                    showlegend=False,
+                    text=[f"{item['actual']:.2f}"], 
+                    textposition='outside',
+                    hovertemplate=f"{item['name']}: {item['actual']:.2f}<extra></extra>"
+                ))
+            
+            fig.update_layout(
+                height=300, 
+                margin=dict(l=20, r=20, t=50, b=20),
+                yaxis=dict(
+                    range=[0, 110],  # Fixed range for normalization
+                    title="Normalized Score",
+                    showticklabels=False
+                ),
+                xaxis_title=""
+            )
+            st.plotly_chart(fig, use_container_width=True)
     
     st.markdown("---")
     
