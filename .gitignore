@@ -9,15 +9,15 @@
 __pycache__/
 *.pyc
 
-# Generated data layers
+# Generated data layers (keep gold for deployment)
 /data/raw/
 /data/bronze/
 /data/silver/
-/data/gold/
 /data/output/
+/data/processed/
 
-# Generated Excel exports
-*.xlsx
+# PowerBI files
+PowerBI/
 
 # OS junk
 .DS_Store
